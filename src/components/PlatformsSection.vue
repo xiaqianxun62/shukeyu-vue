@@ -9,7 +9,7 @@ import { PLATFORMS } from '../data/mock'
       <div class="section-header">
         <h2 class="section-title">三端覆盖</h2>
         <p class="section-desc">小程序 · PC 官网 · APP，随时随地开启球局</p>
-      </div>
+      </div> 
       <div class="platforms-grid">
         <div v-for="item in PLATFORMS" :key="item.name" class="platform-card">
           <div class="platform-icon">

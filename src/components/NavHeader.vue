@@ -15,6 +15,8 @@ const emit = defineEmits<{
   courtsClick: []
   /** 用户菜单「身份校验问题管理」（仅管理员） */
   questionsClick: []
+  /** 用户菜单「访问日志」（仅管理员） */
+  visitLogsClick: []
 }>()
 
 const { isLoggedIn, isAdmin, user, logout } = useAuth()
@@ -295,6 +297,10 @@ onBeforeUnmount(() => {
             <SvgIcon type="engine" :size="15" />
             问题管理
           </button>
+          <button v-if="isAdmin" type="button" class="dropdown-item" @click="emit('visitLogsClick')">
+            <SvgIcon type="users" :size="15" />
+            访问日志
+          </button>
           <button type="button" class="dropdown-item danger" @click="handleLogout">
             <SvgIcon type="logout" :size="15" />
             退出登录
@@ -392,6 +398,10 @@ onBeforeUnmount(() => {
           <button v-if="isAdmin" type="button" class="drawer-profile" @click="emit('questionsClick')">
             <SvgIcon type="engine" :size="16" />
             问题管理
+          </button>
+          <button v-if="isAdmin" type="button" class="drawer-profile" @click="emit('visitLogsClick')">
+            <SvgIcon type="users" :size="16" />
+            访问日志
           </button>
           <button type="button" class="drawer-logout" @click="handleLogout">
             <SvgIcon type="logout" :size="16" />
