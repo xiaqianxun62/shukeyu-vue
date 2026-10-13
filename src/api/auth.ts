@@ -6,6 +6,8 @@ export interface AuthResult {
   token: string | null
   userId: number
   name: string
+  /** 昵称：积分榜等非姓名场景展示，未设置时为 null */
+  nickname?: string | null
   /** 1男 2女 0未知 */
   gender: number
   /** 登录账号：绑定后才有，未绑定时为 null */
@@ -38,6 +40,8 @@ export interface RegisterPayload {
 /** 编辑个人信息：字段留空表示不修改 */
 export interface ProfilePayload {
   name?: string
+  /** 昵称：不传表示不修改，传空串表示清除 */
+  nickname?: string
   gender?: number
   account?: string
   /** 个人头像 URL（http(s):// 或 / 开头） */

@@ -15,6 +15,7 @@ const { user, isLoggedIn, applyProfile, restore } = useAuth()
 
 interface ProfileForm {
   name: string
+  nickname: string
   gender: number
   account: string
   avatar: string
@@ -22,6 +23,7 @@ interface ProfileForm {
 
 const form = reactive<ProfileForm>({
   name: '',
+  nickname: '',
   gender: 0,
   account: '',
   avatar: '',
@@ -34,6 +36,7 @@ const success = ref('')
 function fill(): void {
   if (!user.value) return
   form.name = user.value.name ?? ''
+  form.nickname = user.value.nickname ?? ''
   form.gender = user.value.gender ?? 0
   form.account = user.value.account ?? ''
   form.avatar = user.value.avatar ?? ''
@@ -220,6 +223,8 @@ async function handleSave(): Promise<void> {
   try {
     const updated: AuthResult = await authApi.updateProfile({
       name,
+      // 昵称：空串=清除，不传(null)才是不修改；积分榜优先展示昵称
+      nickname: form.nickname.trim(),
       gender: Number(form.gender),
       account: form.account.trim(),
       avatar: form.avatar,
@@ -254,6 +259,12 @@ async function handleSave(): Promise<void> {
             <label class="field">
               <span class="label">姓名</span>
               <input v-model="form.name" class="input" type="text" placeholder="填写真实姓名" />
+            </label>
+
+            <label class="field">
+              <span class="label">昵称</span>
+              <input v-model="form.nickname" class="input" type="text" placeholder="积分榜等场景展示，可留空" />
+              <span class="hint">积分榜优先显示昵称；不填则显示姓名</span>
             </label>
 
             <div class="field">

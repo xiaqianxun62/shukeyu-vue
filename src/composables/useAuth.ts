@@ -32,6 +32,7 @@ function persist(next: AuthResult | null): void {
       token: null,
       userId: next.userId,
       name: next.name,
+      nickname: next.nickname ?? null,
       gender: next.gender,
       account: next.account ?? null,
       avatar: next.avatar ?? null,
