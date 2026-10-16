@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
     <div class="container header-inner">
       <a href="#hero" class="logo" @click.prevent="go('hero')">
         <SvgIcon type="logo" :size="24" class="logo-icon" />
-        <span>数羽 SHUYU</span>
+        <span>数科羽 shukeyu</span>
       </a>
 
       <!-- 桌面导航：主项平铺 + 「更多」下拉 -->

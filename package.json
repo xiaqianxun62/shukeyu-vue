@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "SHUYU校园羽毛球球局系统官网 - Vue 3 版本",
+  "description": "shukeyu校园羽毛球球局系统官网 - Vue 3 版本",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",

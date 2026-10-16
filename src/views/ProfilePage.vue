@@ -244,7 +244,7 @@ async function handleSave(): Promise<void> {
     <header class="page-bar">
       <a class="brand" href="#hero" @click.prevent="emit('back')">
         <SvgIcon type="logo" :size="22" class="brand-icon" />
-        <span>数羽 SHUYU</span>
+        <span>数科羽 shukeyu</span>
       </a>
       <a class="back-link" href="#hero" @click.prevent="emit('back')">返回官网</a>
     </header>

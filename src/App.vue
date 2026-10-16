@@ -41,7 +41,7 @@ const mobileUrl = mobileSiteUrl()
 function dismissMobileBanner(): void {
   showMobileBanner.value = false
   try {
-    sessionStorage.setItem('shuyu_mobile_banner_dismissed', '1')
+    sessionStorage.setItem('shukeyu_mobile_banner_dismissed', '1')
   } catch {
     /* 隐私模式等场景忽略 */
   }
@@ -50,7 +50,7 @@ function dismissMobileBanner(): void {
 onMounted(() => {
   let dismissed = false
   try {
-    dismissed = sessionStorage.getItem('shuyu_mobile_banner_dismissed') === '1'
+    dismissed = sessionStorage.getItem('shukeyu_mobile_banner_dismissed') === '1'
   } catch {
     dismissed = false
   }
