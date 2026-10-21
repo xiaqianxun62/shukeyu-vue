@@ -11,10 +11,12 @@ import RankingSection from './components/RankingSection.vue'
 import EloLabSection from './components/EloLabSection.vue'
 import AvatarWallSection from './components/AvatarWallSection.vue'
 import CtaToast from './components/CtaToast.vue'
+import HomeNoticeModal from './components/HomeNoticeModal.vue'
 import FooterSection from './components/FooterSection.vue'
 import AuthPage from './views/AuthPage.vue'
 import ProfilePage from './views/ProfilePage.vue'
 import SettingsPage from './views/SettingsPage.vue'
+import NoticeSettingsPage from './views/NoticeSettingsPage.vue'
 import AdminUsersPage from './views/AdminUsersPage.vue'
 import CourtManagementPage from './views/CourtManagementPage.vue'
 import QuestionManagementPage from './views/QuestionManagementPage.vue'
@@ -27,7 +29,7 @@ import { isMobileDevice, mobileSiteUrl } from './utils/device'
  * 极简 hash 路由：官网用 #hero 等锚点做滚动，登录页用 #/login、#/register 区分。
  * 不引入 vue-router，保持零依赖。
  */
-type Route = 'home' | 'login' | 'register' | 'profile' | 'settings' | 'admin' | 'courts' | 'questions' | 'visitlogs' | 'game'
+type Route = 'home' | 'login' | 'register' | 'profile' | 'settings' | 'notice' | 'admin' | 'courts' | 'questions' | 'visitlogs' | 'game'
 
 const showCtaToast = ref(false)
 const gameId = ref<number | null>(null)
@@ -72,7 +74,7 @@ function currentRoute(): Route {
     return 'game'
   }
   gameId.value = null
-  if (hash === 'login' || hash === 'register' || hash === 'profile' || hash === 'settings' || hash === 'admin' || hash === 'courts' || hash === 'questions' || hash === 'visitlogs') return hash as Route
+  if (hash === 'login' || hash === 'register' || hash === 'profile' || hash === 'settings' || hash === 'notice' || hash === 'admin' || hash === 'courts' || hash === 'questions' || hash === 'visitlogs') return hash as Route
   return 'home'
 }
 
@@ -93,6 +95,11 @@ function handleProfileClick(): void {
 /** 用户菜单「站点文案设置」 */
 function handleSettingsClick(): void {
   window.location.hash = '#/settings'
+}
+
+/** 用户菜单「首页公告设置」（仅管理员） */
+function handleNoticeClick(): void {
+  window.location.hash = '#/notice'
 }
 
 /** 用户菜单「用户管理」（仅管理员） */
@@ -154,6 +161,7 @@ onBeforeUnmount(() => {
     />
     <ProfilePage v-else-if="route === 'profile'" @back="handleBack" />
     <SettingsPage v-else-if="route === 'settings'" @back="handleBack" />
+    <NoticeSettingsPage v-else-if="route === 'notice'" @back="handleBack" />
     <AdminUsersPage v-else-if="route === 'admin'" @back="handleBack" />
     <CourtManagementPage v-else-if="route === 'courts'" @back="handleBack" />
     <QuestionManagementPage v-else-if="route === 'questions'" @back="handleBack" />
@@ -178,7 +186,7 @@ onBeforeUnmount(() => {
           ×
         </button>
       </div>
-      <NavHeader @cta-click="handleCtaClick" @profile-click="handleProfileClick" @settings-click="handleSettingsClick" @admin-click="handleAdminClick" @courts-click="handleCourtsClick" @questions-click="handleQuestionsClick" @visit-logs-click="handleVisitLogsClick" />
+      <NavHeader @cta-click="handleCtaClick" @profile-click="handleProfileClick" @settings-click="handleSettingsClick" @notice-click="handleNoticeClick" @admin-click="handleAdminClick" @courts-click="handleCourtsClick" @questions-click="handleQuestionsClick" @visit-logs-click="handleVisitLogsClick" />
       <main>
         <HeroSection />
         <FeaturesSection />
@@ -191,6 +199,8 @@ onBeforeUnmount(() => {
         <AvatarWallSection />
       </main>
       <FooterSection />
+      <!-- 首页弹窗公告：仅首页挂载，关闭后当天不再弹 -->
+      <HomeNoticeModal />
     </template>
     <CtaToast :visible="showCtaToast" @close="closeCtaToast" />
   </div>
