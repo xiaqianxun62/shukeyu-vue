@@ -44,7 +44,7 @@ src/
 │   ├── users.ts / settings.ts / verification.ts / visitLog.ts / stats.ts
 ├── components/          # 官网区块与通用组件
 │   ├── NavHeader.vue    #   顶部固定导航（锚点滚动 + 用户菜单）
-│   ├── HeroSection.vue  #   首屏 banner（保留，蒙板覆盖左半区露半个球场）
+│   ├── HeroSection.vue  #   首屏 banner：蒙板盖左半区 + 右侧半个球场（视图随断点切换）
 │   ├── DashboardSection.vue # 数据概览看板（指标卡 + 近7日场次 + ELO 分布）
 │   ├── AdminSection.vue #   管理功能快捷入口（仅管理员可见）
 │   ├── RankingSection / FooterSection / CtaToast
@@ -66,7 +66,7 @@ src/
 │   ├── VisitLogPage.vue           # #/visitlogs 访问日志（管理员）
 │   └── GameDetailPage.vue         # #/game/{id} 球局详情
 ├── data/mock.ts         # 演示兜底数据（ELO 规则场景等静态文案）
-├── styles/global.css    # 设计系统：CSS 变量 + 全部区块样式
+├── styles/global.css    # 设计系统：CSS 变量 + 全部区块样式（含 Hero 蒙板/球场布局）
 └── utils/               # device.ts（移动端判断）/ coord.ts / random.ts
 ```
 
@@ -84,6 +84,14 @@ src/
 - 移动端优先：≤420px 单列，>420px 内容限宽 720px 居中
 - 图标全部手写内联 SVG，禁止 emoji 与外部图标库
 - 所有可交互元素需有 `focus-visible` 焦点环，并尊重 `prefers-reduced-motion`
+
+## 首屏（Hero）布局与响应式
+
+- **桌面（≥540px）**：左半区是深绿毛玻璃蒙板（`.hero-content`，贴左/上/下边），右半区是羽毛球场线稿（网柱 + 右半场地 + `双打底线/中线/单打边线` 标注）
+  - 蒙板宽度用 CSS 变量 `--hero-mask-w: 58%`（定义在 `.hero-banner`），**蒙板右缘 = 球场图左缘**，改一处两边同时生效
+  - 球场 SVG 在桌面切换为 `viewBox="330 105 285 285"` + `preserveAspectRatio="xMidYMid meet"`：只取右半场等比缩放，**不裁切**（原来的 `slice` 在 21/9 扁 banner 里会放大 1.78 倍、切掉场地顶线）
+- **窄屏（<540px）**：banner 改 `aspect-ratio: 4/3`（21/9 太扁装不下文字），蒙板回到左下角贴角卡片，并加 `max-height` + `overflow-y: auto`——文案再长也在蒙板内滚动，不会被 banner 裁掉
+- ⚠️ `viewBox` / `preserveAspectRatio` **不能用 `v-bind` 动态绑定**：Vue 会把它们当 DOM prop 赋给只读的 `SVGAnimatedRect` / `SVGAnimatedPreserveAspectRatio` 而静默失败。`HeroSection.vue` 用 `ref + setAttribute` 手动切换（SVG 命名空间下大小写才会保留）
 
 ## 部署
 

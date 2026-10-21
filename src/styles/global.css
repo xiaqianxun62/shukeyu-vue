@@ -165,6 +165,8 @@
     aspect-ratio: 21 / 9;
     background: linear-gradient(135deg, #0E4A43 0%, #14665B 40%, #1A7A6B 100%);
     margin-bottom: 24px;
+    /* 桌面端蒙板宽度：蒙板右缘 = 球场图左缘（网柱位置），右侧留半个球场 */
+    --hero-mask-w: 58%;
 
   }
   .hero-banner::before {
@@ -206,12 +208,25 @@
     -webkit-backdrop-filter: blur(12px);
     border-radius: 18px 0 0 18px;
     box-shadow: 0 8px 24px rgba(11, 58, 51, 0.25);
+    align-items: center;
+  }
+  /* 窄屏（<540px）：21/9 的扁 banner 装不下文字，会把贴角蒙板顶部裁掉（手机端文字错位）。
+     提高 banner 高度，并给蒙板加高度上限，内容超长时蒙板内滚动而不是被裁。 */
+  @media (max-width: 539px) {
+    .hero-banner { aspect-ratio: 4 / 3; }
+    .hero-content {
+      max-height: calc(100% - 24px);
+      overflow-y: auto;
+      padding: 16px 18px;
+    }
   }
   .hero-title {
     font-size: 22px;
     font-weight: 800;
     line-height: 1.35;
-    margin-bottom: 10px;
+    margin-bottom: 10px; 
+    letter-spacing: 3px;
+    
   }
   .hero-subtitle {
     font-size: 13px;
@@ -269,12 +284,21 @@
       left: 0;
       top: 0;
       bottom: 0;
-      width: 58%;
+      width: var(--hero-mask-w);
       max-width: none;
       padding: 24px 28px;
       justify-content: center;
       border-radius: 0;
       box-shadow: 8px 0 28px rgba(11, 58, 51, 0.3);
+      overflow-y: auto;
+    }
+    /* 球场图只占蒙板右侧区域，等比缩放不裁切（配合 SVG 的桌面 viewBox）。
+       SVG 是替换元素，width 必须给确定值，否则不会被 left/right 拉伸 */
+    .hero-court {
+      left: var(--hero-mask-w);
+      right: auto;
+      width: calc(100% - var(--hero-mask-w));
+      height: 100%;
     }
     .hero-title { font-size: 32px; }
     .hero-subtitle { font-size: 15px; }

@@ -1,13 +1,54 @@
 <script setup lang="ts">
-const emit = defineEmits<{
-  /** 「立即加入」→ App 层进入登录页 */
-  cta: []
-}>()
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-function scrollTo(id: string) {
-  const el = document.getElementById(id)
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+/**
+ * 球场装饰图随断点切换视图：
+ * - 窄屏（<540px）：全宽 slice，铺满整条横幅；
+ * - 桌面（≥540px）：只截取右半场（网柱 + 右半场地 + 标注），meet 等比缩放，
+ *   配合 .hero-content 蒙板盖住左半区，右侧正好露出完整的半个球场（不再被 slice 裁掉顶线）。
+ *
+ * 注意：viewBox / preserveAspectRatio 不能用 v-bind 动态绑定——Vue 会把它们当 DOM prop
+ * 赋给只读的 SVGAnimatedRect / SVGAnimatedPreserveAspectRatio 而静默失败，
+ * 因此这里用 ref + setAttribute 手动切换（SVG 命名空间下大小写会被保留）。
+ */
+const NARROW_QUERY = '(max-width: 539px)'
+
+const NARROW_VIEW = { viewBox: '-40 -20 650 540', par: 'xMidYMid slice' }
+const DESKTOP_VIEW = { viewBox: '330 105 285 285', par: 'xMidYMid meet' }
+
+/** 初始值直接按当前视口求值：首帧就用正确的视图，避免先按窄屏渲染再切换 */
+const isNarrow = ref(
+  typeof window === 'undefined' ? true : window.matchMedia(NARROW_QUERY).matches,
+)
+
+const svgRef = ref<SVGSVGElement | null>(null)
+let mql: MediaQueryList | null = null
+
+/** 按当前断点写入 SVG 视图属性 */
+function applyView(): void {
+  const el = svgRef.value
+  if (!el) return
+  const v = isNarrow.value ? NARROW_VIEW : DESKTOP_VIEW
+  el.setAttribute('viewBox', v.viewBox)
+  el.setAttribute('preserveAspectRatio', v.par)
 }
+
+onMounted(() => {
+  mql = window.matchMedia(NARROW_QUERY)
+  isNarrow.value = mql.matches
+  mql.addEventListener('change', syncWidth)
+  applyView()
+})
+
+function syncWidth(e: MediaQueryListEvent): void {
+  isNarrow.value = e.matches
+}
+
+watch(isNarrow, applyView)
+
+onBeforeUnmount(() => {
+  mql?.removeEventListener('change', syncWidth)
+})
 </script>
 
 <template>
@@ -15,7 +56,14 @@ function scrollTo(id: string) {
     <div class="container">
       <div class="hero-banner">
         <!-- 球场线条装饰 -->
-          <svg class="hero-court" viewBox="-40 -20 650 540" preserveAspectRatio="xMidYMid slice" role="img" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            ref="svgRef"
+            class="hero-court"
+            viewBox="-40 -20 650 540"
+            preserveAspectRatio="xMidYMid slice"
+            role="img"
+            xmlns="http://www.w3.org/2000/svg"
+          >
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5"
       markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -56,20 +104,21 @@ function scrollTo(id: string) {
 
         <div class="hero-content">
           <h1 class="hero-title">
-            让每一个羽毛球爱好者<br />
-            都能打上<span style="color: var(--accent)">势均力敌</span>的球局
+            拳打<span style="color: var(--accent);font-size:42px">小冯<br /></span>
+            脚踢<span style="color: var(--accent);font-size:42px">广森<br/></span>
+            <span style="font-size:22px;display: block;text-align: right;">--奶娃<br/></span>
           </h1>
           <p class="hero-subtitle">
-            约球 · ELO 积分 · 自动轮转引擎 · 到场即开打
+            ELO 积分 · 轮转引擎
           </p>
-          <div class="hero-buttons">
+          <!--<div class="hero-buttons">
             <button class="btn-primary" type="button" @click="emit('cta')">
               立即加入
             </button>
             <button class="btn-secondary" type="button" @click="scrollTo('dashboard')">
               查看数据
             </button>
-          </div>
+          </div>-->
         </div>
       </div>
     </div>
