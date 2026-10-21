@@ -33,14 +33,8 @@ interface MenuItem {
 /** 顺序与页面自上而下一致：滚动高亮依赖这个顺序 */
 const MENU: MenuItem[] = [
   { id: 'hero', label: '首页', primary: true },
-  { id: 'features', label: '核心功能', primary: false },
-  { id: 'howto', label: '如何加入', primary: false },
-  { id: 'platforms', label: '多端平台', primary: false },
-  { id: 'signup', label: '报名', primary: false },
-  { id: 'arrange', label: '自动编排', primary: true },
+  { id: 'dashboard', label: '数据看板', primary: true },
   { id: 'ranking', label: '积分榜', primary: true },
-  { id: 'elo-lab', label: 'ELO 试算', primary: false },
-  { id: 'avatar-wall', label: '在线头像墙', primary: false },
 ]
 
 /** 桌面端断点：≥1024px 平铺主导航 + 下拉，以下走抽屉 */
@@ -225,7 +219,7 @@ onBeforeUnmount(() => {
           {{ item.label }}
         </a>
 
-        <div class="menu-wrap">
+        <div v-if="moreItems.length" class="menu-wrap">
           <button
             ref="moreBtnRef"
             type="button"

@@ -18,6 +18,16 @@ export interface AuthResult {
   gamesPlayed: number
   /** 是否管理员（后端 user.isAdmin == 1） */
   isAdmin?: boolean
+  /* ---------- 分类 ELO：单打 / 双打 / 混双（个人页明细） ---------- */
+  ratingSingles?: number | null
+  singlesWin?: number | null
+  singlesLoss?: number | null
+  ratingDoubles?: number | null
+  doublesWin?: number | null
+  doublesLoss?: number | null
+  ratingMixed?: number | null
+  mixedWin?: number | null
+  mixedLoss?: number | null
 }
 
 export interface LoginPayload {

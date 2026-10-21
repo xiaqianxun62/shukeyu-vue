@@ -55,6 +55,8 @@ export interface SimulatePayload {
   roundRobin?: boolean
   /** 每场胜方：1=A队 2=B队 */
   winners?: number[]
+  /** 试算类别：1单打 2双打 3混双（未指定 schemeId 时后端按类别预设赛制） */
+  category?: number
 }
 
 /** ELO 试算：复用后端真实编排引擎与 ELO 计算器，不落库 */

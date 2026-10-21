@@ -1,3 +1,4 @@
+<!--球局详情-->
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { cancelRegisterGame, getGame, registerGame, type Game } from '../api/game'
@@ -101,7 +102,7 @@ function initialOf(name: string): string {
   return name.trim().charAt(0).slice(0, 1)
 }
 
-/** 默认封面图（game.cover 为空时使用） */
+/** 默认封面图（当game.cover 为空时使用） */
 const DEFAULT_COVER = '/uploads/cover_1791509309948_6080.jpg'
 const coverUrl = computed(() => game.value?.cover || DEFAULT_COVER)
 

@@ -1,6 +1,6 @@
 import { request } from './http'
 
-/** 积分榜条目（后端 RankingItem） */
+/** 积分榜条目（后端 RankingItem）：rating/win/loss 均为所请求类别（type）的口径 */
 export interface RankingItem {
   userId: number
   name: string
@@ -13,7 +13,10 @@ export interface RankingItem {
   avatar?: string
 }
 
-/** 积分榜 Top N：官网与小程序同源，读 Redis ZSet */
-export function fetchRanking(n = 10): Promise<RankingItem[]> {
-  return request<RankingItem[]>(`/ranking?n=${n}`)
+/**
+ * 积分榜 Top N：官网与小程序同源，读 Redis ZSet。
+ * @param type 类别：1单打(默认) 2双打(同性别) 3混双
+ */
+export function fetchRanking(n = 10, type = 1): Promise<RankingItem[]> {
+  return request<RankingItem[]>(`/ranking?n=${n}&type=${type}`)
 }

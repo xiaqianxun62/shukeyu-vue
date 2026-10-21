@@ -253,6 +253,25 @@ async function handleSave(): Promise<void> {
       <section class="panel">
         <div class="panel-card">
           <template v-if="isLoggedIn">
+            <!-- 分类 ELO 战绩：单打 / 双打(同性别) / 混双 -->
+            <div class="cat-stats">
+              <div class="cat-row">
+                <span class="cat-name">单打</span>
+                <strong class="cat-rating">{{ user?.ratingSingles ?? user?.rating ?? 1200 }}</strong>
+                <span class="cat-record">{{ user?.singlesWin ?? 0 }}胜 {{ user?.singlesLoss ?? 0 }}负</span>
+              </div>
+              <div class="cat-row">
+                <span class="cat-name">双打</span>
+                <strong class="cat-rating">{{ user?.ratingDoubles ?? user?.rating ?? 1200 }}</strong>
+                <span class="cat-record">{{ user?.doublesWin ?? 0 }}胜 {{ user?.doublesLoss ?? 0 }}负</span>
+              </div>
+              <div class="cat-row">
+                <span class="cat-name">混双</span>
+                <strong class="cat-rating">{{ user?.ratingMixed ?? user?.rating ?? 1200 }}</strong>
+                <span class="cat-record">{{ user?.mixedWin ?? 0 }}胜 {{ user?.mixedLoss ?? 0 }}负</span>
+              </div>
+            </div>
+
             <h1 class="title">编辑个人信息</h1>
             <p class="subtitle">修改后会立即生效，群接龙里的称呼也会同步更新</p>
 
@@ -432,6 +451,37 @@ async function handleSave(): Promise<void> {
   border-radius: 16px;
   background: var(--card);
   box-shadow: var(--shadow-md);
+}
+/* 分类 ELO 战绩：单打 / 双打 / 混双 */
+.cat-stats {
+  margin-bottom: 18px;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.cat-row + .cat-row {
+  border-top: 1px solid var(--border-light);
+}
+.cat-name {
+  width: 40px;
+  color: var(--text-muted);
+}
+.cat-rating {
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.cat-record {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 .title {
   margin: 0;

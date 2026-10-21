@@ -39,6 +39,15 @@ function persist(next: AuthResult | null): void {
       rating: next.rating,
       gamesPlayed: next.gamesPlayed,
       isAdmin: next.isAdmin ?? false,
+      ratingSingles: next.ratingSingles ?? null,
+      singlesWin: next.singlesWin ?? null,
+      singlesLoss: next.singlesLoss ?? null,
+      ratingDoubles: next.ratingDoubles ?? null,
+      doublesWin: next.doublesWin ?? null,
+      doublesLoss: next.doublesLoss ?? null,
+      ratingMixed: next.ratingMixed ?? null,
+      mixedWin: next.mixedWin ?? null,
+      mixedLoss: next.mixedLoss ?? null,
     }
     localStorage.setItem(USER_KEY, JSON.stringify(profile))
   } else {

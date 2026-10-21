@@ -1,4 +1,9 @@
 <script setup lang="ts">
+const emit = defineEmits<{
+  /** 「立即加入」→ App 层进入登录页 */
+  cta: []
+}>()
+
 function scrollTo(id: string) {
   const el = document.getElementById(id)
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -58,11 +63,11 @@ function scrollTo(id: string) {
             约球 · ELO 积分 · 自动轮转引擎 · 到场即开打
           </p>
           <div class="hero-buttons">
-            <button class="btn-primary" type="button" @click="scrollTo('features')">
+            <button class="btn-primary" type="button" @click="emit('cta')">
               立即加入
             </button>
-            <button class="btn-secondary" type="button" @click="scrollTo('features')">
-              查看功能
+            <button class="btn-secondary" type="button" @click="scrollTo('dashboard')">
+              查看数据
             </button>
           </div>
         </div>

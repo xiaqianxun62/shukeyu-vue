@@ -68,6 +68,24 @@ onBeforeUnmount(() => {
               <span>历史场次</span>
             </div>
           </div>
+          <!-- 分类 ELO 明细：单打 / 双打(同性别) / 混双 -->
+          <div class="cat-stats">
+            <div class="cat-row">
+              <span class="cat-name">单打</span>
+              <strong class="cat-rating">{{ user.ratingSingles ?? user.rating ?? 1200 }}</strong>
+              <span class="cat-record">{{ user.singlesWin ?? 0 }}胜 {{ user.singlesLoss ?? 0 }}负</span>
+            </div>
+            <div class="cat-row">
+              <span class="cat-name">双打</span>
+              <strong class="cat-rating">{{ user.ratingDoubles ?? user.rating ?? 1200 }}</strong>
+              <span class="cat-record">{{ user.doublesWin ?? 0 }}胜 {{ user.doublesLoss ?? 0 }}负</span>
+            </div>
+            <div class="cat-row">
+              <span class="cat-name">混双</span>
+              <strong class="cat-rating">{{ user.ratingMixed ?? user.rating ?? 1200 }}</strong>
+              <span class="cat-record">{{ user.mixedWin ?? 0 }}胜 {{ user.mixedLoss ?? 0 }}负</span>
+            </div>
+          </div>
           <div class="auth-actions">
             <button class="auth-submit" type="button" @click="emit('openMini')">
               在微信小程序中打开
@@ -225,6 +243,37 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 10px;
   margin-top: 20px;
+}
+/* 分类 ELO 明细：单打 / 双打 / 混双 */
+.cat-stats {
+  margin-top: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 13px;
+}
+.cat-row + .cat-row {
+  border-top: 1px solid var(--border-light);
+}
+.cat-name {
+  width: 40px;
+  color: var(--text-muted);
+}
+.cat-rating {
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.cat-record {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 .stat {
   flex: 1;

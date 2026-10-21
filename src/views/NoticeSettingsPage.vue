@@ -1,3 +1,4 @@
+<!--公告管理页面-->
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import SvgIcon from '../components/SvgIcon.vue'

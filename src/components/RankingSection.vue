@@ -25,6 +25,13 @@ const RANK_TOP_N = 10
 const ranking = ref<RankingItem[]>([])
 const showAll = ref(false)
 const showRules = ref(false)
+/** 榜单类别：1单打 2双打(同性别) 3混双 */
+const rankType = ref(1)
+const RANK_TYPES = [
+  { value: 1, label: '单打榜' },
+  { value: 2, label: '双打榜' },
+  { value: 3, label: '混双榜' },
+]
 const rankState = ref<'loading' | 'data' | 'empty' | 'error'>('loading')
 /** 失败原因：直接展示后端/网络层的原文，便于区分「后端没起」「跨域被拦」「接口报错」 */
 const rankError = ref('')
@@ -57,13 +64,21 @@ async function loadRanking(): Promise<void> {
   rankState.value = 'loading'
   rankError.value = ''
   try {
-    ranking.value = await fetchRanking(RANK_FETCH_SIZE)
+    ranking.value = await fetchRanking(RANK_FETCH_SIZE, rankType.value)
     rankState.value = ranking.value.length === 0 ? 'empty' : 'data'
   } catch (e) {
     ranking.value = []
     rankError.value = e instanceof ApiError ? e.message : '榜单加载失败，请稍后重试'
     rankState.value = 'error'
   }
+}
+
+/** 切换榜单类别（单打/双打/混双） */
+function switchType(t: number): void {
+  if (rankType.value === t) return
+  rankType.value = t
+  showAll.value = false
+  loadRanking()
 }
 
 function handleRetry(): void {
@@ -98,6 +113,21 @@ onMounted(() => {
         <div class="wall-title-row">
           <h2 class="wall-title">ELO 积分榜</h2>
           <span class="live-badge">实时数据 · 与小程序积分榜同源</span>
+        </div>
+        <!-- 榜单类别：单打 / 双打(同性别) / 混双 -->
+        <div class="rank-tabs" role="tablist" aria-label="积分榜类别">
+          <button
+            v-for="t in RANK_TYPES"
+            :key="t.value"
+            class="rank-tab"
+            :class="{ on: rankType === t.value }"
+            type="button"
+            role="tab"
+            :aria-selected="rankType === t.value"
+            @click="switchType(t.value)"
+          >
+            {{ t.label }}
+          </button>
         </div>
         <div class="ranking-switch">
           <button class="rank-toggle" type="button" @click="toggleView">

@@ -2,14 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import NavHeader from './components/NavHeader.vue'
 import HeroSection from './components/HeroSection.vue'
-import FeaturesSection from './components/FeaturesSection.vue'
-import HowToSection from './components/HowToSection.vue'
-import PlatformsSection from './components/PlatformsSection.vue'
-import SignupSection from './components/SignupSection.vue'
-import ArrangeSection from './components/ArrangeSection.vue'
+import DashboardSection from './components/DashboardSection.vue'
+import AdminSection from './components/AdminSection.vue'
 import RankingSection from './components/RankingSection.vue'
-import EloLabSection from './components/EloLabSection.vue'
-import AvatarWallSection from './components/AvatarWallSection.vue'
 import CtaToast from './components/CtaToast.vue'
 import HomeNoticeModal from './components/HomeNoticeModal.vue'
 import FooterSection from './components/FooterSection.vue'
@@ -188,15 +183,11 @@ onBeforeUnmount(() => {
       </div>
       <NavHeader @cta-click="handleCtaClick" @profile-click="handleProfileClick" @settings-click="handleSettingsClick" @notice-click="handleNoticeClick" @admin-click="handleAdminClick" @courts-click="handleCourtsClick" @questions-click="handleQuestionsClick" @visit-logs-click="handleVisitLogsClick" />
       <main>
-        <HeroSection />
-        <FeaturesSection />
-        <HowToSection />
-        <PlatformsSection />
-        <SignupSection />
-        <ArrangeSection />
+        <HeroSection @cta="handleCtaClick" />
+        <!-- 首页定位为数据与管理：首屏保留，下方为数据看板 + 管理入口 + 积分榜 -->
+        <DashboardSection />
+        <AdminSection />
         <RankingSection />
-        <EloLabSection />
-        <AvatarWallSection />
       </main>
       <FooterSection />
       <!-- 首页弹窗公告：仅首页挂载，关闭后当天不再弹 -->

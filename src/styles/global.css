@@ -264,7 +264,18 @@
 
   @media (min-width: 540px) {
     .hero { padding: 56px 0 40px; }
-    .hero-content { left: 0.01%; bottom: 0.1%; padding: 50px 9px; }
+    /* 蒙板覆盖整个左半区（贴左/上/下边，宽度到球网），右侧只露半个羽毛球场 */
+    .hero-content {
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 58%;
+      max-width: none;
+      padding: 24px 28px;
+      justify-content: center;
+      border-radius: 0;
+      box-shadow: 8px 0 28px rgba(11, 58, 51, 0.3);
+    }
     .hero-title { font-size: 32px; }
     .hero-subtitle { font-size: 15px; }
   }
@@ -701,6 +712,19 @@
   }
 
   /* Ranking */
+  .rank-tabs {
+    display: inline-flex; gap: 4px; padding: 4px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 999px; margin-top: 12px;
+  }
+  .rank-tab {
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    background: transparent; border: none; border-radius: 999px;
+    padding: 6px 16px; cursor: pointer; transition: all .2s;
+    font-family: inherit;
+  }
+  .rank-tab:hover { color: var(--primary); }
+  .rank-tab.on { background: var(--primary); color: #FFFFFF; }
   .ranking-switch { display: flex; align-items: center; gap: 10px; }
   .rank-toggle {
     font-size: 13px; color: var(--primary); background: #FFFFFF;
