@@ -11,6 +11,7 @@ const { isLoggedIn, isAdmin } = useAuth()
 const loading = ref(true)
 const list = ref<usersApi.UserItem[]>([])
 const togglingId = ref<number | null>(null)
+const resettingId = ref<number | null>(null)
 const error = ref('')
 
 const canAccess = computed(() => isLoggedIn.value && isAdmin.value)
@@ -37,6 +38,19 @@ async function toggleAdmin(u: usersApi.UserItem): Promise<void> {
     alert(e instanceof Error ? e.message : '操作失败')
   } finally {
     togglingId.value = null
+  }
+}
+
+async function resetPassword(u: usersApi.UserItem): Promise<void> {
+  if (!confirm(`确定要把用户「${u.name}」的密码重置为 123456 吗？`)) return
+  resettingId.value = u.id
+  try {
+    await usersApi.resetPassword(u.id)
+    alert(`已将「${u.name}」的密码重置为 123456`)
+  } catch (e) {
+    alert(e instanceof Error ? e.message : '操作失败')
+  } finally {
+    resettingId.value = null
   }
 }
 
@@ -111,6 +125,13 @@ onMounted(load)
               >
                 {{ togglingId === u.id ? '处理中…' : u.isAdmin ? '取消管理员' : '设为管理员' }}
               </button>
+              <button
+                class="btn warn"
+                :disabled="resettingId === u.id"
+                @click="resetPassword(u)"
+              >
+                {{ resettingId === u.id ? '重置中…' : '重置密码' }}
+              </button>
             </td>
           </tr>
         </tbody>
@@ -149,6 +170,7 @@ onMounted(load)
 }
 .btn.primary { background: #14665b; color: #fff; }
 .btn.danger { background: #b33a2e; color: #fff; }
+.btn.warn { background: #7a4f1b; color: #fff; margin-left: 8px; }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
 
 .users-table {
