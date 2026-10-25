@@ -18,7 +18,7 @@ npm run build        # 类型检查（vue-tsc --noEmit）+ 产出 dist/
 npm run preview      # 预览构建产物
 ```
 
-前置条件：后端 [../Code](../Code) 已在 `http://localhost:8080` 启动（`vite.config.ts` 中 `server.proxy` 把 `/api` 转发过去）。
+前置条件：后端 [Shukeyu](../Shukeyu) 已在 `http://localhost:8080` 启动（`vite.config.ts` 中 `server.proxy` 把 `/api` 转发过去）。
 
 ## 环境变量
 
@@ -101,5 +101,5 @@ src/
 
 ## 相关项目
 
-- 后端：[../Code](../Code)（Spring Boot，Swagger UI: `http://localhost:8080/api/swagger-ui.html`）
-- 小程序 / H5：[../yuyue-wxapp](../yuyue-wxapp)（uni-app）
+- 后端：[Shukeyu](../Shukeyu)（Spring Boot，Swagger UI: `http://localhost:8080/api/swagger-ui.html`）
+- 小程序 / H5：[shukeyu-wxapp](../shukeyu-wxapp)（uni-app）
