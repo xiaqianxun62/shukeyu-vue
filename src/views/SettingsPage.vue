@@ -9,7 +9,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-const { isLoggedIn, isAdmin, restore } = useAuth()
+const { isLoggedIn, has, restore } = useAuth()
 
 interface PoemForm {
   line1: string
@@ -55,8 +55,8 @@ async function handleSave(): Promise<void> {
     window.location.hash = '#/login'
     return
   }
-  if (!isAdmin.value) {
-    error.value = '仅管理员可修改站点文案'
+  if (!has('settings:manage')) {
+    error.value = '持 settings:manage 权限（社长/管理员）可修改站点文案'
     return
   }
   error.value = ''
@@ -82,8 +82,8 @@ async function handleSave(): Promise<void> {
 
 onMounted(async () => {
   if (!isLoggedIn.value) await restore()
-  if (!isAdmin.value) {
-    error.value = '仅管理员可访问此页面'
+  if (!has('settings:manage')) {
+    error.value = '仅持 settings:manage 权限者可访问此页面'
     return
   }
   await load()

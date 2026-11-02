@@ -6,7 +6,7 @@ import type { QuestionCreateRequest, VerificationQuestion } from '../api/verific
 
 const emit = defineEmits<{ back: [] }>()
 
-const { isLoggedIn, isAdmin } = useAuth()
+const { isLoggedIn, has } = useAuth()
 const loading = ref(true)
 const list = ref<VerificationQuestion[]>([])
 const error = ref('')
@@ -18,7 +18,7 @@ const form = ref<QuestionCreateRequest>({ question: '', answer: '', enabled: 1 }
 const submitting = ref(false)
 const formError = ref('')
 
-const canAccess = computed(() => isLoggedIn.value && isAdmin.value)
+const canAccess = computed(() => isLoggedIn.value && has('verify:manage'))
 const editingItem = computed(() => list.value.find((q) => q.id === editingId.value))
 
 async function load(): Promise<void> {

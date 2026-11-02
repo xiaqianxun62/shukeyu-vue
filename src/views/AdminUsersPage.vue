@@ -1,4 +1,4 @@
-<!-- 用户管理页面 -->
+<!-- 用户管理页面：RBAC 角色分配（持 user:manage 权限） -->
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
@@ -7,20 +7,29 @@ import SmartImage from '../components/SmartImage.vue'
 
 const emit = defineEmits<{ back: [] }>()
 
-const { isLoggedIn, isAdmin } = useAuth()
+const { isLoggedIn, has } = useAuth()
 const loading = ref(true)
 const list = ref<usersApi.UserItem[]>([])
-const togglingId = ref<number | null>(null)
+const rolesList = ref<usersApi.RoleItem[]>([])
+/** 每个用户的当前角色码：userId -> 角色码组（降序） */
+const roleMap = ref<Record<number, string[]>>({})
 const resettingId = ref<number | null>(null)
 const error = ref('')
 
-const canAccess = computed(() => isLoggedIn.value && isAdmin.value)
+const canAccess = computed(() => isLoggedIn.value && has('user:manage'))
 
 async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    list.value = await usersApi.listUsers()
+    const [users, roles] = await Promise.all([usersApi.listUsers(), usersApi.listRoles()])
+    list.value = users
+    rolesList.value = roles
+    // 每人查一次当前角色（量级 = 社团人数，可接受；后端有 Redis 缓存）
+    const entries = await Promise.all(
+      users.map(async (u) => [u.id, await usersApi.getUserRoles(u.id)] as const),
+    )
+    roleMap.value = Object.fromEntries(entries)
   } catch (e) {
     error.value = e instanceof Error ? e.message : '加载失败'
   } finally {
@@ -28,17 +37,51 @@ async function load(): Promise<void> {
   }
 }
 
-async function toggleAdmin(u: usersApi.UserItem): Promise<void> {
-  if (!confirm(`确定要${u.isAdmin ? '取消' : '授予'}用户「${u.name}」的管理员权限吗？`)) return
-  togglingId.value = u.id
+/* ---------- 角色分配模态框 ---------- */
+const modalOpen = ref(false)
+const editingUser = ref<usersApi.UserItem | null>(null)
+const picked = ref<string[]>([])
+const saving = ref(false)
+
+function openRoles(u: usersApi.UserItem): void {
+  editingUser.value = u
+  picked.value = [...(roleMap.value[u.id] ?? [])]
+  modalOpen.value = true
+}
+
+function closeModal(): void {
+  modalOpen.value = false
+  editingUser.value = null
+}
+
+function toggleRole(code: string): void {
+  picked.value = picked.value.includes(code)
+    ? picked.value.filter((c) => c !== code)
+    : [...picked.value, code]
+}
+
+async function saveRoles(): Promise<void> {
+  const u = editingUser.value
+  if (!u) return
+  saving.value = true
   try {
-    const updated = await usersApi.setAdmin(u.id, !u.isAdmin)
-    u.isAdmin = updated.isAdmin
+    const assigned = await usersApi.assignRoles(u.id, picked.value)
+    roleMap.value = { ...roleMap.value, [u.id]: assigned }
+    closeModal()
   } catch (e) {
     alert(e instanceof Error ? e.message : '操作失败')
   } finally {
-    togglingId.value = null
+    saving.value = false
   }
+}
+
+/** 角色列显示文本：按权限从低到高映射已授角色 */
+function roleText(u: usersApi.UserItem): string {
+  const codes = roleMap.value[u.id] ?? []
+  if (!codes.length) return '普通社员'
+  return codes
+    .map((c) => rolesList.value.find((r) => r.code === c)?.name ?? c)
+    .join('、')
 }
 
 async function resetPassword(u: usersApi.UserItem): Promise<void> {
@@ -75,8 +118,8 @@ onMounted(load)
     </header>
 
     <section v-if="!canAccess" class="denied">
-      <h2>需要管理员权限</h2>
-      <p>请用管理员账号登录后再访问此页面。</p>
+      <h2>需要 user:manage 权限</h2>
+      <p>请用社长或系统管理员账号登录后再访问此页面。</p>
       <button class="btn primary" @click="emit('back')">返回</button>
     </section>
 
@@ -105,7 +148,7 @@ onMounted(load)
               <div class="user-info">
                 <div class="user-name">
                   {{ u.name }}
-                  <span v-if="u.isAdmin" class="tag admin">管理员</span>
+                  <span v-if="u.isVerified === 1" class="tag admin">已认证</span>
                 </div>
                 <div class="user-sub">
                   #{{ u.id }}<span v-if="u.account"> · {{ u.account }}</span>
@@ -115,16 +158,9 @@ onMounted(load)
             <td>{{ u.gender === 1 ? '男' : u.gender === 2 ? '女' : '-' }}</td>
             <td>{{ u.rating }}</td>
             <td>{{ u.winCount }}胜 / {{ u.lossCount }}负 · {{ u.gamesPlayed }}场</td>
-            <td>{{ u.isAdmin ? '管理员' : '普通用户' }}</td>
+            <td>{{ roleText(u) }}</td>
             <td class="actions">
-              <button
-                class="btn"
-                :class="u.isAdmin ? 'danger' : 'primary'"
-                :disabled="togglingId === u.id"
-                @click="toggleAdmin(u)"
-              >
-                {{ togglingId === u.id ? '处理中…' : u.isAdmin ? '取消管理员' : '设为管理员' }}
-              </button>
+              <button class="btn primary" @click="openRoles(u)">分配角色</button>
               <button
                 class="btn warn"
                 :disabled="resettingId === u.id"
@@ -137,6 +173,39 @@ onMounted(load)
         </tbody>
       </table>
     </section>
+
+    <!-- 角色分配模态框 -->
+    <div v-if="modalOpen && editingUser" class="modal-mask" @click.self="closeModal">
+      <div class="modal">
+        <h3>分配角色 · {{ editingUser.name }}</h3>
+        <p class="modal-hint">
+          整体覆盖：勾选的角色会替换该用户现有角色；全部不勾 = 降回普通社员。
+          系统管理员角色仅 ADMIN 可授，且至少保留一名系统管理员。
+        </p>
+        <div class="role-picker">
+          <label
+            v-for="r in rolesList"
+            :key="r.code"
+            class="role-option"
+            :class="{ picked: picked.includes(r.code) }"
+          >
+            <input
+              type="checkbox"
+              :checked="picked.includes(r.code)"
+              @change="toggleRole(r.code)"
+            />
+            <span class="role-name">{{ r.name }}</span>
+            <span class="role-code">{{ r.code }}</span>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" @click="closeModal">取消</button>
+          <button class="btn primary" :disabled="saving" @click="saveRoles">
+            {{ saving ? '保存中…' : '保存' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -169,10 +238,11 @@ onMounted(load)
   font-size: 13px; font-weight: 600;
 }
 .btn.primary { background: #14665b; color: #fff; }
-.btn.danger { background: #b33a2e; color: #fff; }
 .btn.warn { background: #7a4f1b; color: #fff; margin-left: 8px; }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
 
+.loading { padding: 40px 0; text-align: center; color: #5a726d; }
+.error { padding: 40px 0; text-align: center; color: #b33a2e; }
 .users-table {
   width: 100%; border-collapse: separate; border-spacing: 0;
   background: #fff; border-radius: 12px; overflow: hidden;
@@ -183,24 +253,37 @@ onMounted(load)
   border-bottom: 1px solid #f0efea;
   font-size: 13px;
 }
-.users-table thead th {
-  background: #f1f5f3; color: #5a726d; font-weight: 600; font-size: 12px;
-}
-.users-table tbody tr:last-child td { border-bottom: none; }
-.user-cell { display: flex; align-items: center; gap: 12px; }
+.users-table th { color: #5a726d; font-weight: 600; }
+.user-cell { display: flex; align-items: center; gap: 10px; }
 .avatar {
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%; flex: none;
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 14px; font-weight: 700; overflow: hidden;
+  color: #fff; font-weight: 700; font-size: 15px; overflow: hidden;
 }
 .avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .user-name { font-weight: 600; color: #1a2e2a; display: flex; align-items: center; gap: 6px; }
-.user-sub { color: #5a726d; font-size: 12px; margin-top: 2px; }
-.tag {
-  font-size: 10px; padding: 1px 6px; border-radius: 4px;
+.user-sub { color: #8a9a96; font-size: 12px; margin-top: 2px; }
+.tag.admin {
+  background: #ede7d3; color: #7a4f1b; padding: 1px 8px; border-radius: 10px; font-size: 11px;
 }
-.tag.admin { background: #e5c84b; color: #1a2e2a; }
-.actions { text-align: right; }
-.loading, .error { padding: 40px; text-align: center; color: #5a726d; }
-.error { color: #b33a2e; }
+.actions { white-space: nowrap; }
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(26,46,42,.45);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.modal {
+  background: #fff; border-radius: 14px; padding: 22px 24px; width: min(480px, 92vw);
+  box-shadow: 0 12px 40px rgba(0,0,0,.2);
+}
+.modal h3 { margin: 0 0 8px; color: #1a2e2a; }
+.modal-hint { margin: 0 0 14px; font-size: 12px; color: #5a726d; line-height: 1.6; }
+.role-picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.role-option {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border: 1px solid #e4e0d5; border-radius: 10px; cursor: pointer; font-size: 13px;
+}
+.role-option.picked { border-color: #14665b; background: #eef4f2; }
+.role-name { font-weight: 600; color: #1a2e2a; }
+.role-code { margin-left: auto; color: #8a9a96; font-size: 12px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 </style>

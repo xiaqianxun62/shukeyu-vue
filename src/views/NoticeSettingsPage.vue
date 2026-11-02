@@ -11,7 +11,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-const { isLoggedIn, isAdmin, restore } = useAuth()
+const { isLoggedIn, has, restore } = useAuth()
 
 interface NoticeForm {
   enabled: string
@@ -138,8 +138,8 @@ async function handleSave(): Promise<void> {
     window.location.hash = '#/login'
     return
   }
-  if (!isAdmin.value) {
-    error.value = '仅管理员可修改公告'
+  if (!has('settings:manage')) {
+    error.value = '持 settings:manage 权限（社长/管理员）可修改公告'
     return
   }
   error.value = ''
@@ -199,8 +199,8 @@ async function handleSave(): Promise<void> {
 
 onMounted(async () => {
   if (!isLoggedIn.value) await restore()
-  if (!isAdmin.value) {
-    error.value = '仅管理员可访问此页面'
+  if (!has('settings:manage')) {
+    error.value = '仅持 settings:manage 权限者可访问此页面'
     return
   }
   await load()
@@ -220,7 +220,7 @@ onMounted(async () => {
     <main class="page-main">
       <section class="panel">
         <div class="panel-card">
-          <template v-if="isLoggedIn && isAdmin">
+          <template v-if="isLoggedIn && has('settings:manage')">
             <h1 class="title">首页公告 · 弹窗设置</h1>
             <p class="subtitle">
               开启后，官网首页与小程序首页会弹出此公告。展示频率、颜色、宽高均可自定义；

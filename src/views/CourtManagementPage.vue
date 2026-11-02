@@ -5,7 +5,7 @@ import { useAuth } from '../composables/useAuth'
 import * as courtApi from '../api/court'
 
 const emit = defineEmits<{ back: [] }>()
-const { isLoggedIn, isAdmin } = useAuth()
+const { isLoggedIn, has } = useAuth()
 
 const loading = ref(true)
 const list = ref<courtApi.Court[]>([])
@@ -17,7 +17,7 @@ const saving = ref(false)
 type Form = { name: string; address: string; lat: string; lng: string; sort: number; enabled: number }
 const form = ref<Form>({ name: '', address: '', lat: '', lng: '', sort: 0, enabled: 1 })
 
-const canAccess = computed(() => isLoggedIn.value && isAdmin.value)
+const canAccess = computed(() => isLoggedIn.value && has('court:manage'))
 
 async function load(): Promise<void> {
   loading.value = true; error.value = ''

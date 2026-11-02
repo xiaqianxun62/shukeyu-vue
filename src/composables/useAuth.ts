@@ -38,7 +38,7 @@ function persist(next: AuthResult | null): void {
       avatar: next.avatar ?? null,
       rating: next.rating,
       gamesPlayed: next.gamesPlayed,
-      isAdmin: next.isAdmin ?? false,
+      permissions: next.permissions ?? [],
       ratingSingles: next.ratingSingles ?? null,
       singlesWin: next.singlesWin ?? null,
       singlesLoss: next.singlesLoss ?? null,
@@ -130,10 +130,14 @@ window.addEventListener('yuyue:unauthorized', () => {
 })
 
 export function useAuth() {
+  /** 是否持有某个权限码（RBAC；登录响应下发 permissions，各入口据此显隐） */
+  function has(code: string): boolean {
+    return (user.value?.permissions ?? []).includes(code)
+  }
   return {
     user,
     isLoggedIn: computed(() => user.value !== null),
-    isAdmin: computed(() => (user.value?.isAdmin ?? false) === true),
+    has,
     submitting,
     restored,
     login,

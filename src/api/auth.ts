@@ -16,8 +16,8 @@ export interface AuthResult {
   avatar: string | null
   rating: number
   gamesPlayed: number
-  /** 是否管理员（后端 user.isAdmin == 1） */
-  isAdmin?: boolean
+  /** 当前用户权限码列表（RBAC，登录/注册/me 时返回；前端据此做管理入口显隐） */
+  permissions?: string[]
   /* ---------- 分类 ELO：单打 / 双打 / 混双（个人页明细） ---------- */
   ratingSingles?: number | null
   singlesWin?: number | null

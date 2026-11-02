@@ -76,11 +76,6 @@ const registered = computed(() => {
   return game.value.registrations.some((r) => r.userId === user.value!.userId)
 })
 
-/*const canHide = computed(() => {
-  if (!game.value || !user.value) return false
-  return game.value.creatorId === user.value.userId || !!user.value.isAdmin
-})*/
-
 const genderStat = computed(() => {
   const list = game.value?.registrations ?? []
   let male = 0, female = 0

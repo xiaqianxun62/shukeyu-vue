@@ -4,7 +4,7 @@ import { useAuth } from '../composables/useAuth'
 import * as visitLogApi from '../api/visitLog'
 
 const emit = defineEmits<{ back: [] }>()
-const { isLoggedIn, isAdmin } = useAuth()
+const { isLoggedIn, has } = useAuth()
 
 const loading = ref(true)
 const list = ref<visitLogApi.VisitLog[]>([])
@@ -12,7 +12,7 @@ const error = ref('')
 const ipFilter = ref('')
 const limit = ref(100)
 
-const canAccess = computed(() => isLoggedIn.value && isAdmin.value)
+const canAccess = computed(() => isLoggedIn.value && has('log:view'))
 
 async function load(): Promise<void> {
   loading.value = true; error.value = ''

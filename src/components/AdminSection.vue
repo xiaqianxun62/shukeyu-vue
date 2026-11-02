@@ -4,27 +4,30 @@ import SvgIcon from './SvgIcon.vue'
 import { useAuth } from '../composables/useAuth'
 
 /**
- * 管理功能快捷入口：仅管理员渲染，点击直达对应 hash 路由管理页。
+ * 管理功能快捷入口：按 RBAC 权限码逐项渲染，点击直达对应 hash 路由管理页。
  */
-const { isAdmin } = useAuth()
+const { has } = useAuth()
 
 interface Entry {
   hash: string
   icon: 'users' | 'court' | 'card' | 'megaphone' | 'engine' | 'chart'
   label: string
   desc: string
+  /** RBAC 权限码：不持有则隐藏该入口 */
+  permission: string
 }
 
 const ENTRIES: Entry[] = [
-  { hash: '#/admin', icon: 'users', label: '用户管理', desc: '账号列表 · 管理员权限' },
-  { hash: '#/courts', icon: 'court', label: '球场管理', desc: '场馆字典 · 启停排序' },
-  { hash: '#/questions', icon: 'card', label: '问题管理', desc: '身份校验题库 CRUD' },
-  { hash: '#/notice', icon: 'megaphone', label: '首页公告', desc: '弹窗频率 · 配色 · 媒体' },
-  { hash: '#/settings', icon: 'engine', label: '站点文案', desc: '首页诗句等展示文案' },
-  { hash: '#/visitlogs', icon: 'chart', label: '访问日志', desc: '访客 IP · 来源 · 轨迹' },
+  { hash: '#/admin', icon: 'users', label: '用户管理', desc: '账号列表 · 角色权限分配', permission: 'user:manage' },
+  { hash: '#/courts', icon: 'court', label: '球场管理', desc: '场馆字典 · 启停排序', permission: 'court:manage' },
+  { hash: '#/questions', icon: 'card', label: '问题管理', desc: '身份校验题库 CRUD', permission: 'verify:manage' },
+  { hash: '#/notice', icon: 'megaphone', label: '首页公告', desc: '弹窗频率 · 配色 · 媒体', permission: 'settings:manage' },
+  { hash: '#/settings', icon: 'engine', label: '站点文案', desc: '首页诗句等展示文案', permission: 'settings:manage' },
+  { hash: '#/visitlogs', icon: 'chart', label: '访问日志', desc: '访客 IP · 来源 · 轨迹', permission: 'log:view' },
 ]
 
-const visible = computed(() => isAdmin.value)
+/** 持任一管理权限码即展示本区块；无码用户看不到 */
+const visible = computed(() => ENTRIES.some((e) => has(e.permission)))
 
 function go(hash: string): void {
   window.location.hash = hash
@@ -42,6 +45,7 @@ function go(hash: string): void {
       <div class="entry-grid">
         <button
           v-for="e in ENTRIES"
+          v-show="has(e.permission)"
           :key="e.hash"
           type="button"
           class="entry-card"

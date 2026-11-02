@@ -21,7 +21,14 @@ const emit = defineEmits<{
   visitLogsClick: []
 }>()
 
-const { isLoggedIn, isAdmin, user, logout } = useAuth()
+const { isLoggedIn, has, user, logout } = useAuth()
+
+/* RBAC：各管理入口按权限码显隐（后端仍是最终闸门） */
+const canSettings = computed(() => has('settings:manage'))
+const canUsers = computed(() => has('user:manage'))
+const canCourts = computed(() => has('court:manage'))
+const canQuestions = computed(() => has('verify:manage'))
+const canVisitLogs = computed(() => has('log:view'))
 
 interface MenuItem {
   id: string
@@ -277,27 +284,27 @@ onBeforeUnmount(() => {
             <SvgIcon type="person" :size="15" />
             编辑个人信息
           </button>
-          <button v-if="isAdmin" type="button" class="dropdown-item" @click="openSettings">
+          <button v-if="canSettings" type="button" class="dropdown-item" @click="openSettings">
             <SvgIcon type="engine" :size="15" />
             站点文案
           </button>
-          <button v-if="isAdmin" type="button" class="dropdown-item" @click="emit('noticeClick')">
+          <button v-if="canSettings" type="button" class="dropdown-item" @click="emit('noticeClick')">
             <SvgIcon type="engine" :size="15" />
             首页公告
           </button>
-          <button v-if="isAdmin" type="button" class="dropdown-item" @click="emit('adminClick')">
+          <button v-if="canUsers" type="button" class="dropdown-item" @click="emit('adminClick')">
             <SvgIcon type="users" :size="15" />
             用户管理
           </button>
-          <button v-if="isAdmin" type="button" class="dropdown-item" @click="emit('courtsClick')">
+          <button v-if="canCourts" type="button" class="dropdown-item" @click="emit('courtsClick')">
             <SvgIcon type="location" :size="15" />
             球场管理
           </button>
-          <button v-if="isAdmin" type="button" class="dropdown-item" @click="emit('questionsClick')">
+          <button v-if="canQuestions" type="button" class="dropdown-item" @click="emit('questionsClick')">
             <SvgIcon type="engine" :size="15" />
             问题管理
           </button>
-          <button v-if="isAdmin" type="button" class="dropdown-item" @click="emit('visitLogsClick')">
+          <button v-if="canVisitLogs" type="button" class="dropdown-item" @click="emit('visitLogsClick')">
             <SvgIcon type="users" :size="15" />
             访问日志
           </button>
@@ -383,27 +390,27 @@ onBeforeUnmount(() => {
             <SvgIcon type="person" :size="16" />
             编辑个人信息
           </button>
-          <button v-if="isAdmin" type="button" class="drawer-profile" @click="openSettings">
+          <button v-if="canSettings" type="button" class="drawer-profile" @click="openSettings">
             <SvgIcon type="engine" :size="16" />
             站点文案
           </button>
-          <button v-if="isAdmin" type="button" class="drawer-profile" @click="emit('noticeClick')">
+          <button v-if="canSettings" type="button" class="drawer-profile" @click="emit('noticeClick')">
             <SvgIcon type="engine" :size="16" />
             首页公告
           </button>
-          <button v-if="isAdmin" type="button" class="drawer-profile" @click="emit('adminClick')">
+          <button v-if="canUsers" type="button" class="drawer-profile" @click="emit('adminClick')">
             <SvgIcon type="users" :size="16" />
             用户管理
           </button>
-          <button v-if="isAdmin" type="button" class="drawer-profile" @click="emit('courtsClick')">
+          <button v-if="canCourts" type="button" class="drawer-profile" @click="emit('courtsClick')">
             <SvgIcon type="location" :size="16" />
             球场管理
           </button>
-          <button v-if="isAdmin" type="button" class="drawer-profile" @click="emit('questionsClick')">
+          <button v-if="canQuestions" type="button" class="drawer-profile" @click="emit('questionsClick')">
             <SvgIcon type="engine" :size="16" />
             问题管理
           </button>
-          <button v-if="isAdmin" type="button" class="drawer-profile" @click="emit('visitLogsClick')">
+          <button v-if="canVisitLogs" type="button" class="drawer-profile" @click="emit('visitLogsClick')">
             <SvgIcon type="users" :size="16" />
             访问日志
           </button>
