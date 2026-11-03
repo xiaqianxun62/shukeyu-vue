@@ -93,15 +93,15 @@ onMounted(load)
         </thead>
         <tbody>
           <tr v-for="v in list" :key="v.id">
-            <td class="time-cell">{{ formatTime(v.createTime) }}</td>
-            <td class="ip-cell">{{ v.ip || '—' }}</td>
-            <td>
+            <td class="time-cell" data-label="时间">{{ formatTime(v.createTime) }}</td>
+            <td class="ip-cell" data-label="IP">{{ v.ip || '—' }}</td>
+            <td data-label="用户">
               <span v-if="v.userId" class="tag ok">{{ v.userName || ('#' + v.userId) }}</span>
               <span v-else class="tag off">游客</span>
             </td>
-            <td class="sub path-cell" :title="v.path">{{ v.method }} {{ truncate(v.path, 42) }}</td>
-            <td class="sub" :title="v.referer">{{ truncate(v.referer, 30) }}</td>
-            <td class="sub" :title="v.userAgent">{{ truncate(v.userAgent, 40) }}</td>
+            <td class="sub path-cell" data-label="路径" :title="v.path">{{ v.method }} {{ truncate(v.path, 42) }}</td>
+            <td class="sub" data-label="来源页" :title="v.referer">{{ truncate(v.referer, 30) }}</td>
+            <td class="sub" data-label="UA" :title="v.userAgent">{{ truncate(v.userAgent, 40) }}</td>
           </tr>
           <tr v-if="list.length === 0">
             <td colspan="6" class="empty">暂无访问记录</td>
@@ -142,4 +142,42 @@ onMounted(load)
 .tag.off { background: #f0efea; color: #5a726d; }
 .loading, .error, .empty { padding: 40px; text-align: center; color: #5a726d; }
 .error { color: #b33a2e; }
+
+/* ===== 手机适配（≤640px） ===== */
+@media (max-width: 640px) {
+  .admin-page { padding: 16px 14px 40px; }
+  .top { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .top h1 { font-size: 18px; order: 2; flex-basis: 100%; }
+  .back { order: 1; }
+  .refresh-btn { order: 3; margin-left: 0; flex: 1; }
+
+  .toolbar { flex-wrap: wrap; }
+  .toolbar .ip-input { flex: 1 1 100%; max-width: none; }
+  .toolbar .limit-select { flex: 1; }
+  .toolbar .btn { flex: 1; }
+
+  .table thead { display: none; }
+  .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+  .table { background: transparent; box-shadow: none; border-radius: 0; }
+  .table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .table tr {
+    background: #fff; border-radius: 12px; padding: 4px 0;
+    box-shadow: 0 2px 8px rgba(20,102,91,.08);
+  }
+  .table td {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; padding: 7px 14px; border-bottom: 1px solid #f4f1ea;
+    font-size: 12px;
+  }
+  .table td:last-child { border-bottom: none; }
+  .table td::before {
+    content: attr(data-label);
+    color: #5a726d; font-size: 11px; font-weight: 600; flex-shrink: 0;
+    width: 48px;
+  }
+  .table td.path-cell { font-family: ui-monospace, monospace; word-break: break-all; }
+  .table td .sub { color: #1a2e2a; }
+  .table td.empty { display: block; text-align: center; padding: 32px 16px; }
+  .table td.empty::before { display: none; }
+}
 </style>

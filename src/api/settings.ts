@@ -45,6 +45,12 @@ export interface HomeNotice {
   width: string
   /** 高度 px，"0" = 高度自适应 */
   height: string
+  /** 标题字号 px */
+  titleSize: string
+  /** 正文字号 px */
+  contentSize: string
+  /** 按钮字号 px */
+  btnSize: string
   /** 媒体类型：""=无 / image / video */
   mediaType: string
   /** 媒体地址（/uploads/xxx） */
@@ -66,4 +72,21 @@ export function updateHomeNotice(patch: Partial<HomeNotice>): Promise<HomeNotice
 /** 上传公告媒体（图片/视频），返回 mediaType + mediaUrl。仅管理员。 */
 export function uploadNoticeMedia(file: File): Promise<{ mediaType: string; mediaUrl: string }> {
   return uploadFile('/settings/upload-notice-media', file)
+}
+
+/** 全站页脚文案（小程序 & PC 官网底部共用） */
+export interface FooterConfig {
+  text: string
+}
+
+export function getFooter(): Promise<FooterConfig> {
+  return request<FooterConfig>('/settings/footer')
+}
+
+/** 修改页脚文案。仅管理员。 */
+export function updateFooter(patch: Partial<FooterConfig>): Promise<FooterConfig> {
+  return request<FooterConfig>('/settings/footer', {
+    method: 'PUT',
+    body: patch,
+  })
 }

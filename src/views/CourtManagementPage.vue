@@ -113,14 +113,14 @@ onMounted(load)
         </thead>
         <tbody>
           <tr v-for="c in list" :key="c.id">
-            <td>{{ c.sort }}</td>
-            <td class="name-cell">{{ c.name }}<span v-if="!c.enabled" class="tag-disabled">已停用</span></td>
-            <td class="sub">{{ c.address || '—' }}</td>
-            <td class="sub">
+            <td data-label="排序">{{ c.sort }}</td>
+            <td class="name-cell" data-label="球场名称">{{ c.name }}<span v-if="!c.enabled" class="tag-disabled">已停用</span></td>
+            <td class="sub" data-label="地址">{{ c.address || '—' }}</td>
+            <td class="sub" data-label="经纬度">
               <span v-if="c.lat != null && c.lng != null">{{ c.lat.toFixed(5) }}, {{ c.lng.toFixed(5) }}</span>
               <span v-else>—</span>
             </td>
-            <td>
+            <td data-label="状态">
               <span :class="['tag', c.enabled ? 'ok' : 'off']">{{ c.enabled ? '启用' : '停用' }}</span>
             </td>
             <td class="actions">
@@ -231,4 +231,49 @@ onMounted(load)
 .row { display: flex; gap: 12px; }
 .field.half { flex: 1; }
 .modal-foot { padding: 14px 20px; border-top: 1px solid #f0efea; display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ===== 手机适配（≤640px） ===== */
+@media (max-width: 640px) {
+  .admin-page { padding: 16px 14px 40px; }
+  .top { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .top h1 { font-size: 18px; order: 2; flex-basis: 100%; }
+  .back { order: 1; }
+  .add-btn { order: 3; margin-left: 0; flex: 1; }
+
+  .table thead { display: none; }
+  .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+  .table { background: transparent; box-shadow: none; border-radius: 0; }
+  .table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .table tr {
+    background: #fff; border-radius: 12px; padding: 4px 0;
+    box-shadow: 0 2px 8px rgba(20,102,91,.08);
+  }
+  .table td {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 8px 14px; border-bottom: 1px solid #f4f1ea;
+    font-size: 13px;
+  }
+  .table td:last-child { border-bottom: none; }
+  .table td::before {
+    content: attr(data-label);
+    color: #5a726d; font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .table td.name-cell::before { display: none; }
+  .table td.name-cell { justify-content: flex-start; }
+  .table td.actions {
+    flex-direction: row; flex-wrap: wrap; justify-content: flex-end;
+    gap: 6px; padding-top: 10px;
+  }
+  .table td.actions::before { display: none; }
+  .table td.actions .btn { flex: 1; min-width: 70px; }
+  .table td.empty { display: block; text-align: center; padding: 32px 16px; }
+  .table td.empty::before { display: none; }
+
+  .row { flex-direction: column; gap: 14px; }
+  .modal { width: 92vw; }
+  .modal-head { padding: 14px 16px; }
+  .form { padding: 16px; }
+  .modal-foot { padding: 12px 16px; flex-direction: column-reverse; }
+  .modal-foot .btn { width: 100%; }
+}
 </style>

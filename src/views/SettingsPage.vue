@@ -257,4 +257,17 @@ onMounted(async () => {
 }
 .ghost-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
 .ghost-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ===== 手机适配（≤640px） ===== */
+@media (max-width: 640px) {
+  .page-bar { padding: 0 14px; }
+  .brand span { display: none; }
+  .page-main { padding: 16px 14px 40px; }
+  .panel-card { padding: 16px; border-radius: 14px; }
+  .title { font-size: 18px; }
+  .preview-box { padding: 12px; }
+  .actions { flex-direction: column-reverse; }
+  .actions .primary-btn,
+  .actions .ghost-btn { width: 100%; }
+}
 </style>

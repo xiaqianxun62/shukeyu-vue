@@ -117,12 +117,12 @@ onMounted(load)
         </thead>
         <tbody>
           <tr v-for="q in list" :key="q.id" :class="{ disabled: q.enabled === 0 }">
-            <td class="col-id">{{ q.id }}</td>
-            <td class="question-cell">{{ q.question }}</td>
-            <td class="answer-cell">
+            <td class="col-id" data-label="#">{{ q.id }}</td>
+            <td class="question-cell" data-label="问题">{{ q.question }}</td>
+            <td class="answer-cell" data-label="正确答案">
               <code>{{ q.answer }}</code>
             </td>
-            <td>
+            <td data-label="状态">
               <span :class="['tag', q.enabled === 1 ? 'on' : 'off']">
                 {{ q.enabled === 1 ? '启用中' : '已停用' }}
               </span>
@@ -267,4 +267,50 @@ onMounted(load)
 .field small { color: #999; font-size: 11px; }
 .form-error { background: #fdecea; color: #b33a2e; padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* ===== 手机适配（≤640px） ===== */
+@media (max-width: 640px) {
+  .admin-page { padding: 16px 14px 40px; }
+  .top { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .top h1 { font-size: 18px; order: 2; flex-basis: 100%; }
+  .back { order: 1; }
+  .hint { order: 3; margin-left: 0; font-size: 12px; }
+  .top .btn.primary { order: 4; margin-left: auto; }
+
+  .questions-table thead { display: none; }
+  .questions-table, .questions-table tbody, .questions-table tr, .questions-table td {
+    display: block; width: 100%;
+  }
+  .questions-table { background: transparent; box-shadow: none; border-radius: 0; }
+  .questions-table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .questions-table tr {
+    background: #fff; border-radius: 12px; padding: 4px 0;
+    box-shadow: 0 2px 8px rgba(20,102,91,.08);
+  }
+  .questions-table td {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; padding: 8px 14px; border-bottom: 1px solid #f4f1ea;
+    font-size: 13px;
+  }
+  .questions-table td:last-child { border-bottom: none; }
+  .questions-table td::before {
+    content: attr(data-label);
+    color: #5a726d; font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .questions-table td.col-actions {
+    flex-direction: row; justify-content: flex-end; padding-top: 10px;
+  }
+  .questions-table td.col-actions::before { display: none; }
+  .questions-table td.col-actions .btn { flex: 1; }
+  .questions-table td.question-cell,
+  .questions-table td.answer-cell { flex-direction: column; align-items: stretch; }
+  .questions-table td.question-cell::before,
+  .questions-table td.answer-cell::before { display: none; }
+  .questions-table td.question-cell { font-weight: 600; color: #1a2e2a; }
+  .questions-table td.answer-cell code { word-break: break-all; }
+
+  .modal { width: 92vw; padding: 18px 16px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; }
+}
 </style>

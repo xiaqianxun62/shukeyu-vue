@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import SvgIcon from '../components/SvgIcon.vue'
+import SmartImage from '../components/SmartImage.vue'
 import * as settingsApi from '../api/settings'
 import { resolveUrl } from '../api/http'
 import { useAuth } from '../composables/useAuth'
@@ -25,6 +26,9 @@ interface NoticeForm {
   btnTextColor: string
   width: string
   height: string
+  titleSize: string
+  contentSize: string
+  btnSize: string
   mediaType: string
   mediaUrl: string
 }
@@ -41,6 +45,9 @@ const form = reactive<NoticeForm>({
   btnTextColor: '#ffffff',
   width: '420',
   height: '0',
+  titleSize: '20',
+  contentSize: '15',
+  btnSize: '15',
   mediaType: '',
   mediaUrl: '',
 })
@@ -87,6 +94,9 @@ async function load(): Promise<void> {
     form.btnTextColor = data.btnTextColor || '#ffffff'
     form.width = data.width || '420'
     form.height = data.height || '0'
+    form.titleSize = data.titleSize || '20'
+    form.contentSize = data.contentSize || '15'
+    form.btnSize = data.btnSize || '15'
     form.mediaType = data.mediaType || ''
     form.mediaUrl = data.mediaUrl || ''
   } catch (e) {
@@ -159,6 +169,22 @@ async function handleSave(): Promise<void> {
     error.value = '高度需在 0 ~ 800 px 之间（0 = 自适应）'
     return
   }
+  // 字号校验：10 ~ 40 px
+  const ts = Number(form.titleSize)
+  const cs = Number(form.contentSize)
+  const bs = Number(form.btnSize)
+  if (isNaN(ts) || ts < 10 || ts > 40) {
+    error.value = '标题字号需在 10 ~ 40 px 之间'
+    return
+  }
+  if (isNaN(cs) || cs < 10 || cs > 40) {
+    error.value = '正文字号需在 10 ~ 40 px 之间'
+    return
+  }
+  if (isNaN(bs) || bs < 10 || bs > 40) {
+    error.value = '按钮字号需在 10 ~ 40 px 之间'
+    return
+  }
   saving.value = true
   try {
     const saved = await settingsApi.updateHomeNotice({
@@ -173,6 +199,9 @@ async function handleSave(): Promise<void> {
       btnTextColor: form.btnTextColor,
       width: String(Math.round(w)),
       height: String(Math.round(h)),
+      titleSize: String(Math.round(ts)),
+      contentSize: String(Math.round(cs)),
+      btnSize: String(Math.round(bs)),
       mediaType: form.mediaType, // 空串 = 移除媒体（后端特判）
       mediaUrl: form.mediaUrl || undefined,
     })
@@ -187,6 +216,9 @@ async function handleSave(): Promise<void> {
     form.btnTextColor = saved.btnTextColor || form.btnTextColor
     form.width = saved.width || form.width
     form.height = saved.height ?? form.height
+    form.titleSize = saved.titleSize || form.titleSize
+    form.contentSize = saved.contentSize || form.contentSize
+    form.btnSize = saved.btnSize || form.btnSize
     form.mediaType = saved.mediaType || ''
     form.mediaUrl = saved.mediaUrl || ''
     success.value = '已保存，用户端下次进首页即可看到（内容更新会按频率重新弹）'
@@ -273,9 +305,9 @@ onMounted(async () => {
                 <span class="label">配图 / 视频（可选）</span>
                 <div class="media-box">
                   <template v-if="form.mediaType && form.mediaUrl">
-                    <img
+                    <SmartImage
                       v-if="form.mediaType === 'image'"
-                      :src="resolveUrl(form.mediaUrl)"
+                      :src="form.mediaUrl"
                       class="media-thumb"
                       alt="公告图片"
                     />
@@ -371,20 +403,51 @@ onMounted(async () => {
                 </div>
               </div>
 
+              <!-- 字号 -->
+              <div class="field">
+                <span class="label">字号 (px)</span>
+                <div class="row">
+                  <label class="size-item">
+                    <span class="size-name">标题</span>
+                    <input v-model="form.titleSize" type="number" min="10" max="40" />
+                  </label>
+                  <label class="size-item">
+                    <span class="size-name">正文</span>
+                    <input v-model="form.contentSize" type="number" min="10" max="40" />
+                  </label>
+                  <label class="size-item">
+                    <span class="size-name">按钮</span>
+                    <input v-model="form.btnSize" type="number" min="10" max="40" />
+                  </label>
+                </div>
+              </div>
+
               <!-- 效果预览：模拟遮罩内弹窗，随上方配置实时变化 -->
               <div class="field">
                 <span class="label">效果预览</span>
                 <div class="preview-mask">
                   <div class="preview-notice" :style="previewStyle">
                     <span class="pn-close">×</span>
-                    <div class="pn-title" :style="{ color: form.titleColor || '#1a2e2a' }">
+                    <div
+                      class="pn-title"
+                      :style="{
+                        color: form.titleColor || '#1a2e2a',
+                        fontSize: (form.titleSize || 20) + 'px',
+                      }"
+                    >
                       {{ form.title.trim() || '公告' }}
                     </div>
-                    <div class="pn-content" :style="{ color: form.contentColor || '#5a726d' }">
+                    <div
+                      class="pn-content"
+                      :style="{
+                        color: form.contentColor || '#5a726d',
+                        fontSize: (form.contentSize || 15) + 'px',
+                      }"
+                    >
                       {{ form.content || '弹窗正文会显示在这里。支持多行内容，超长时可在弹窗内滚动查看。' }}
-                      <img
+                      <SmartImage
                         v-if="form.mediaType === 'image' && form.mediaUrl"
-                        :src="resolveUrl(form.mediaUrl)"
+                        :src="form.mediaUrl"
                         class="pn-media"
                         alt=""
                       />
@@ -401,6 +464,7 @@ onMounted(async () => {
                       :style="{
                         background: form.btnBgColor || '#14665b',
                         color: form.btnTextColor || '#ffffff',
+                        fontSize: (form.btnSize || 15) + 'px',
                       }"
                     >
                       我知道了
@@ -667,4 +731,29 @@ select.input { cursor: pointer; }
   cursor: pointer; transition: all .2s;
 }
 .ghost-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+
+/* ===== 手机适配（≤640px） ===== */
+@media (max-width: 640px) {
+  .page-bar { padding: 0 14px; }
+  .brand span { display: none; }
+  .page-main { padding: 16px 14px 40px; }
+  .panel-card { padding: 16px; border-radius: 14px; }
+  .title { font-size: 18px; }
+
+  /* 颜色选择：名称在上，取色器在下 */
+  .color-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .color-picker { width: 100%; justify-content: space-between; }
+  .color-hex { flex: 1; }
+
+  /* 尺寸输入：两列堆叠 */
+  .row { flex-direction: column; gap: 12px; }
+
+  /* 预览区缩小 */
+  .preview-mask { padding: 16px 8px; }
+  .preview-notice { padding: 18px 14px 12px; }
+
+  .actions { flex-direction: column-reverse; }
+  .actions .primary-btn,
+  .actions .ghost-btn { width: 100%; }
+}
 </style>

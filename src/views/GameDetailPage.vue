@@ -492,4 +492,18 @@ function openMini(): void {
 .map-btn.primary:hover {
   background: linear-gradient(135deg, #0f544a, #156c5f);
 }
+
+/* ===== 手机适配（≤640px） ===== */
+@media (max-width: 640px) {
+  .top { padding: 12px 14px; gap: 10px; }
+  .content { padding: 14px 14px 32px; }
+  .card { padding: 16px; border-radius: 12px; }
+  .cover-banner { height: 160px; }
+  .cover-info { left: 14px; right: 14px; bottom: 12px; }
+  .head-title { font-size: 18px; }
+  .actions-row { flex-direction: column; }
+  .actions-row .btn { width: 100%; }
+  .map-card-title-row { flex-direction: column; align-items: flex-start; }
+  .map-actions { flex-direction: column; }
+}
 </style>

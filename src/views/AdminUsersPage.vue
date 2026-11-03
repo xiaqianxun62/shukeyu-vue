@@ -140,7 +140,7 @@ onMounted(load)
         </thead>
         <tbody>
           <tr v-for="u in list" :key="u.id">
-            <td class="user-cell">
+            <td class="user-cell" data-label="用户">
               <div class="avatar" :style="{ background: colorFor(u.id) }">
                 <SmartImage v-if="u.avatar" :src="u.avatar" class="avatar-img" />
                 <span v-else>{{ initial(u.name) }}</span>
@@ -155,10 +155,10 @@ onMounted(load)
                 </div>
               </div>
             </td>
-            <td>{{ u.gender === 1 ? '男' : u.gender === 2 ? '女' : '-' }}</td>
-            <td>{{ u.rating }}</td>
-            <td>{{ u.winCount }}胜 / {{ u.lossCount }}负 · {{ u.gamesPlayed }}场</td>
-            <td>{{ roleText(u) }}</td>
+            <td data-label="性别">{{ u.gender === 1 ? '男' : u.gender === 2 ? '女' : '-' }}</td>
+            <td data-label="ELO">{{ u.rating }}</td>
+            <td data-label="战绩">{{ u.winCount }}胜 / {{ u.lossCount }}负 · {{ u.gamesPlayed }}场</td>
+            <td data-label="角色">{{ roleText(u) }}</td>
             <td class="actions">
               <button class="btn primary" @click="openRoles(u)">分配角色</button>
               <button
@@ -286,4 +286,46 @@ onMounted(load)
 .role-name { font-weight: 600; color: #1a2e2a; }
 .role-code { margin-left: auto; color: #8a9a96; font-size: 12px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ===== 手机适配（≤640px） ===== */
+@media (max-width: 640px) {
+  .admin-page { padding: 16px 14px 40px; }
+  .top { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .top h1 { font-size: 18px; }
+  .hint { margin-left: 0; width: 100%; font-size: 12px; }
+
+  /* 表格转卡片 */
+  .users-table thead { display: none; }
+  .users-table, .users-table tbody, .users-table tr, .users-table td {
+    display: block; width: 100%;
+  }
+  .users-table { background: transparent; box-shadow: none; border-radius: 0; }
+  .users-table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .users-table tr {
+    background: #fff; border-radius: 12px; padding: 4px 0;
+    box-shadow: 0 2px 8px rgba(20,102,91,.08);
+  }
+  .users-table td {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 8px 14px; border-bottom: 1px solid #f4f1ea;
+    font-size: 13px;
+  }
+  .users-table td:last-child { border-bottom: none; }
+  .users-table td::before {
+    content: attr(data-label);
+    color: #5a726d; font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .users-table td.user-cell { justify-content: flex-start; }
+  .users-table td.user-cell::before { display: none; }
+  .users-table td.actions {
+    flex-direction: row; justify-content: flex-end; padding-top: 10px;
+  }
+  .users-table td.actions::before { display: none; }
+  .users-table td.actions .btn { flex: 1; }
+  .actions .btn.warn { margin-left: 0; }
+
+  .modal { width: 92vw; padding: 18px 16px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; }
+}
 </style>

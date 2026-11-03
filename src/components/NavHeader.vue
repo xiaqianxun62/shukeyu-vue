@@ -9,6 +9,8 @@ const emit = defineEmits<{
   profileClick: []
   /** 用户菜单「站点文案设置」 */
   settingsClick: []
+  /** 用户菜单「页脚文案设置」（仅管理员） */
+  footerClick: []
   /** 用户菜单「首页公告设置」（仅管理员） */
   noticeClick: []
   /** 用户菜单「用户管理」（仅管理员） */
@@ -288,6 +290,10 @@ onBeforeUnmount(() => {
             <SvgIcon type="engine" :size="15" />
             站点文案
           </button>
+          <button v-if="canSettings" type="button" class="dropdown-item" @click="emit('footerClick')">
+            <SvgIcon type="engine" :size="15" />
+            页脚文案
+          </button>
           <button v-if="canSettings" type="button" class="dropdown-item" @click="emit('noticeClick')">
             <SvgIcon type="engine" :size="15" />
             首页公告
@@ -393,6 +399,10 @@ onBeforeUnmount(() => {
           <button v-if="canSettings" type="button" class="drawer-profile" @click="openSettings">
             <SvgIcon type="engine" :size="16" />
             站点文案
+          </button>
+          <button v-if="canSettings" type="button" class="drawer-profile" @click="emit('footerClick')">
+            <SvgIcon type="engine" :size="16" />
+            页脚文案
           </button>
           <button v-if="canSettings" type="button" class="drawer-profile" @click="emit('noticeClick')">
             <SvgIcon type="engine" :size="16" />

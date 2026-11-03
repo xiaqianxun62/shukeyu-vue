@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { getHomeNotice, type HomeNotice } from '../api/settings'
 import { resolveUrl } from '../api/http'
+import SmartImage from './SmartImage.vue'
 
 /**
  * 首页弹窗公告：拉取管理员配置的公告，enabled=1 且有内容才弹。
@@ -87,14 +88,20 @@ onMounted(async () => {
   <div v-if="visible && cfg" class="notice-mask" @click.self="dismiss">
     <div class="notice-card" role="dialog" aria-modal="true" :aria-label="cfg.title" :style="cardStyle">
       <button type="button" class="notice-close" aria-label="关闭弹窗" @click="dismiss">×</button>
-      <h3 class="notice-title" :style="{ color: cfg.titleColor || '#1a2e2a' }">
+      <h3
+        class="notice-title"
+        :style="{ color: cfg.titleColor || '#1a2e2a', fontSize: (cfg.titleSize || 20) + 'px' }"
+      >
         {{ cfg.title?.trim() || '公告' }}
       </h3>
-      <div class="notice-content" :style="{ color: cfg.contentColor || '#5a726d' }">
+      <div
+        class="notice-content"
+        :style="{ color: cfg.contentColor || '#5a726d', fontSize: (cfg.contentSize || 15) + 'px' }"
+      >
         {{ cfg.content }}
-        <img
+        <SmartImage
           v-if="cfg.mediaType === 'image' && cfg.mediaUrl"
-          :src="resolveUrl(cfg.mediaUrl)"
+          :src="cfg.mediaUrl"
           class="notice-media"
           alt=""
         />
@@ -109,7 +116,11 @@ onMounted(async () => {
       <button
         type="button"
         class="notice-ok"
-        :style="{ background: cfg.btnBgColor || '#14665b', color: cfg.btnTextColor || '#fff' }"
+        :style="{
+          background: cfg.btnBgColor || '#14665b',
+          color: cfg.btnTextColor || '#fff',
+          fontSize: (cfg.btnSize || 15) + 'px',
+        }"
         @click="dismiss"
       >
         我知道了
