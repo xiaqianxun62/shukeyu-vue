@@ -21,6 +21,8 @@ const emit = defineEmits<{
   questionsClick: []
   /** 用户菜单「访问日志」（仅管理员） */
   visitLogsClick: []
+  /** 用户菜单「大型比赛管理」（持赛事管理权限） */
+  tournamentsClick: []
 }>()
 
 const { isLoggedIn, has, user, logout } = useAuth()
@@ -31,6 +33,7 @@ const canUsers = computed(() => has('user:manage'))
 const canCourts = computed(() => has('court:manage'))
 const canQuestions = computed(() => has('verify:manage'))
 const canVisitLogs = computed(() => has('log:view'))
+const canTournaments = computed(() => has('tournament:manage'))
 
 interface MenuItem {
   id: string
@@ -314,6 +317,10 @@ onBeforeUnmount(() => {
             <SvgIcon type="users" :size="15" />
             访问日志
           </button>
+          <button v-if="canTournaments" type="button" class="dropdown-item" @click="emit('tournamentsClick')">
+            <SvgIcon type="trophy" :size="15" />
+            大型比赛管理
+          </button>
           <button type="button" class="dropdown-item danger" @click="handleLogout">
             <SvgIcon type="logout" :size="15" />
             退出登录
@@ -423,6 +430,10 @@ onBeforeUnmount(() => {
           <button v-if="canVisitLogs" type="button" class="drawer-profile" @click="emit('visitLogsClick')">
             <SvgIcon type="users" :size="16" />
             访问日志
+          </button>
+          <button v-if="canTournaments" type="button" class="drawer-profile" @click="emit('tournamentsClick')">
+            <SvgIcon type="trophy" :size="16" />
+            大型比赛管理
           </button>
           <button type="button" class="drawer-logout" @click="handleLogout">
             <SvgIcon type="logout" :size="16" />

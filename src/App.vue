@@ -17,6 +17,7 @@ import AdminUsersPage from './views/AdminUsersPage.vue'
 import CourtManagementPage from './views/CourtManagementPage.vue'
 import QuestionManagementPage from './views/QuestionManagementPage.vue'
 import VisitLogPage from './views/VisitLogPage.vue'
+import TournamentManagementPage from './views/TournamentManagementPage.vue'
 import GameDetailPage from './views/GameDetailPage.vue'
 import { useAuth } from './composables/useAuth'
 import { isMobileDevice, mobileSiteUrl } from './utils/device'
@@ -25,7 +26,7 @@ import { isMobileDevice, mobileSiteUrl } from './utils/device'
  * 极简 hash 路由：官网用 #hero 等锚点做滚动，登录页用 #/login、#/register 区分。
  * 不引入 vue-router，保持零依赖。
  */
-type Route = 'home' | 'login' | 'register' | 'profile' | 'settings' | 'footer' | 'notice' | 'admin' | 'courts' | 'questions' | 'visitlogs' | 'game'
+type Route = 'home' | 'login' | 'register' | 'profile' | 'settings' | 'footer' | 'notice' | 'admin' | 'courts' | 'questions' | 'visitlogs' | 'tournaments' | 'game'
 
 const showCtaToast = ref(false)
 const gameId = ref<number | null>(null)
@@ -70,7 +71,7 @@ function currentRoute(): Route {
     return 'game'
   }
   gameId.value = null
-  if (hash === 'login' || hash === 'register' || hash === 'profile' || hash === 'settings' || hash === 'footer' || hash === 'notice' || hash === 'admin' || hash === 'courts' || hash === 'questions' || hash === 'visitlogs') return hash as Route
+  if (hash === 'login' || hash === 'register' || hash === 'profile' || hash === 'settings' || hash === 'footer' || hash === 'notice' || hash === 'admin' || hash === 'courts' || hash === 'questions' || hash === 'visitlogs' || hash === 'tournaments') return hash as Route
   return 'home'
 }
 
@@ -123,6 +124,11 @@ function handleVisitLogsClick(): void {
   window.location.hash = '#/visitlogs'
 }
 
+/** 用户菜单「大型比赛管理」（持赛事管理权限） */
+function handleTournamentsClick(): void {
+  window.location.hash = '#/tournaments'
+}
+
 /** 从登录页返回官网（回到首页锚点，hash 变化会自动切回官网视图） */
 function handleBack(): void {
   if (window.location.hash.startsWith('#/')) {
@@ -168,6 +174,7 @@ onBeforeUnmount(() => {
     <CourtManagementPage v-else-if="route === 'courts'" @back="handleBack" />
     <QuestionManagementPage v-else-if="route === 'questions'" @back="handleBack" />
     <VisitLogPage v-else-if="route === 'visitlogs'" @back="handleBack" />
+    <TournamentManagementPage v-else-if="route === 'tournaments'" @back="handleBack" />
     <AuthPage
       v-else-if="route !== 'home'"
       :tab="authTab"
@@ -188,7 +195,7 @@ onBeforeUnmount(() => {
           ×
         </button>
       </div>
-      <NavHeader @cta-click="handleCtaClick" @profile-click="handleProfileClick" @settings-click="handleSettingsClick" @footer-click="handleFooterClick" @notice-click="handleNoticeClick" @admin-click="handleAdminClick" @courts-click="handleCourtsClick" @questions-click="handleQuestionsClick" @visit-logs-click="handleVisitLogsClick" />
+      <NavHeader @cta-click="handleCtaClick" @profile-click="handleProfileClick" @settings-click="handleSettingsClick" @footer-click="handleFooterClick" @notice-click="handleNoticeClick" @admin-click="handleAdminClick" @courts-click="handleCourtsClick" @questions-click="handleQuestionsClick" @visit-logs-click="handleVisitLogsClick" @tournaments-click="handleTournamentsClick" />
       <main>
         <HeroSection @cta="handleCtaClick" />
         <!-- 首页定位为数据与管理：首屏保留，下方为数据看板 + 管理入口 + 积分榜 -->
