@@ -3,6 +3,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import TournamentBracketView from '../components/TournamentBracketView.vue'
+import TournamentBracketPreview from '../components/TournamentBracketPreview.vue'
 import * as api from '../api/tournament'
 
 const emit = defineEmits<{ back: [] }>()
@@ -72,6 +73,8 @@ const FORMAT_OPTIONS = [
 ]
 
 const formOpen = ref(false)
+/** 新建 / 编辑弹窗里的晋级图预览 */
+const previewOpen = ref(false)
 const formMode = ref<'create' | 'edit'>('create')
 const formSaving = ref(false)
 const formError = ref('')
@@ -198,6 +201,7 @@ function openCreate(): void {
   formMode.value = 'create'
   formLocked.value = false
   formError.value = ''
+  previewOpen.value = false
   form.value = {
     title: '',
     location: '',
@@ -217,6 +221,7 @@ function openEdit(t: api.TournamentManageItem): void {
   formMode.value = 'edit'
   formLocked.value = t.drawn
   formError.value = ''
+  previewOpen.value = false
   form.value = {
     title: t.title,
     location: t.location ?? '',
@@ -1059,6 +1064,10 @@ onMounted(async () => {
             小组赛：0 = 按每组队数打满单循环；指定轮数可少于满轮（部分循环）或多于满轮（双循环及以上，主客互换）。<br />
             淘汰赛：0 = 按晋级人数自动推导；指定轮数后规模 = 2^(轮数+1)，晋级人数放不下时自动扩容，放得下但有多余签位时首轮出现轮空。
           </p>
+          <div class="preview-entry">
+            <button type="button" class="btn ghost" @click="previewOpen = true">预览晋级图 →</button>
+            <span class="sub">按当前配置与单组别满员人数，实时预估分组与淘汰赛签表</span>
+          </div>
           <label class="field">
             <span>赛事说明</span>
             <textarea v-model="form.remark" rows="3" maxlength="500" placeholder="赛制补充说明、集合时间等" />
@@ -1071,6 +1080,28 @@ onMounted(async () => {
           <button class="btn primary" :disabled="formSaving" @click="handleSave">
             {{ formSaving ? '保存中…' : '保存' }}
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 晋级图预览 -->
+    <div v-if="previewOpen" class="mask" @click.self="previewOpen = false">
+      <div class="modal wide">
+        <div class="modal-head">
+          <h3>晋级图预览</h3>
+          <button class="close" @click="previewOpen = false">×</button>
+        </div>
+        <div class="preview-body">
+          <TournamentBracketPreview
+            :group-size="Number(form.groupSize) || 0"
+            :advance-per-group="Number(form.advancePerGroup) || 0"
+            :max-entries="Number(form.maxEntries) || 0"
+            :group-rounds="Number(form.groupRounds) || 0"
+            :knockout-rounds="Number(form.knockoutRounds) || 0"
+          />
+        </div>
+        <div class="modal-foot">
+          <button class="btn primary" @click="previewOpen = false">知道了</button>
         </div>
       </div>
     </div>
@@ -1244,6 +1275,11 @@ onMounted(async () => {
 .mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 16px; }
 .modal { width: 520px; max-width: 94vw; max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 14px; overflow: hidden; }
 .modal.narrow { width: 420px; }
+.modal.wide { width: 900px; }
+.preview-body { padding: 18px 20px; }
+.preview-entry { display: flex; align-items: center; gap: 10px; margin: 2px 0 10px; flex-wrap: wrap; }
+.btn.ghost { background: #fff; border: 1px solid #14665b; color: #14665b; }
+.btn.ghost:hover { background: #f2f8f6; }
 .modal-head { padding: 16px 20px; border-bottom: 1px solid #f0efea; display: flex; align-items: center; justify-content: space-between; }
 .modal-head h3 { margin: 0; font-size: 15px; font-weight: 700; color: #1a2e2a; }
 .close { background: none; border: none; font-size: 20px; cursor: pointer; color: #5a726d; }
