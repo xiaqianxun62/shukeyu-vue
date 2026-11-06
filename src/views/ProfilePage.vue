@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import SvgIcon from '../components/SvgIcon.vue'
 import * as authApi from '../api/auth'
 import type { AuthResult } from '../api/auth'
@@ -11,7 +11,7 @@ const emit = defineEmits<{
   back: []
 }>()
 
-const { user, isLoggedIn, applyProfile, restore } = useAuth()
+const { user, isLoggedIn, applyProfile, restore, changePassword } = useAuth()
 
 interface ProfileForm {
   name: string
@@ -202,6 +202,50 @@ async function confirmCrop(): Promise<void> {
   }
 }
 
+/* ---------- 修改密码（与资料保存分开提交，互不影响） ---------- */
+
+const pwd = reactive({ oldPassword: '', newPassword: '', confirm: '' })
+const changingPassword = ref(false)
+const pwdError = ref('')
+const pwdSuccess = ref('')
+/** 已设置过密码；undefined 视为已设置，避免旧缓存漏填原密码被后端拒绝 */
+const hasPassword = computed(() => user.value?.hasPassword !== false)
+
+async function handleChangePassword(): Promise<void> {
+  pwdError.value = ''
+  pwdSuccess.value = ''
+  const newPassword = pwd.newPassword
+  if (hasPassword.value && !pwd.oldPassword) {
+    pwdError.value = '请填写原密码'
+    return
+  }
+  if (newPassword.length < 6 || newPassword.length > 64) {
+    pwdError.value = '新密码长度需为 6-64 位'
+    return
+  }
+  if (newPassword !== pwd.confirm) {
+    pwdError.value = '两次输入的新密码不一致'
+    return
+  }
+  changingPassword.value = true
+  try {
+    await changePassword({
+      oldPassword: hasPassword.value ? pwd.oldPassword : undefined,
+      newPassword,
+    })
+    pwdSuccess.value = hasPassword.value
+      ? '密码已修改，其他设备需重新登录'
+      : '密码已设置，现在可用「账号 + 密码」登录'
+    pwd.oldPassword = ''
+    pwd.newPassword = ''
+    pwd.confirm = ''
+  } catch (e) {
+    pwdError.value = e instanceof Error ? e.message : '修改失败，请稍后重试'
+  } finally {
+    changingPassword.value = false
+  }
+}
+
 onMounted(async () => {
   if (!user.value) {
     await restore()
@@ -350,6 +394,62 @@ async function handleSave(): Promise<void> {
                 {{ saving ? '保存中…' : '保存' }}
               </button>
               <button class="ghost-btn" type="button" @click="emit('back')">返回</button>
+            </div>
+
+            <div class="pwd-block">
+              <h2 class="pwd-title">{{ hasPassword ? '修改密码' : '设置登录密码' }}</h2>
+              <p class="pwd-tip">
+                {{
+                  hasPassword
+                    ? '改密后其他设备会立即退出登录，本机会自动续上'
+                    : '设置后可用「账号 + 密码」登录，微信登录不受影响'
+                }}
+              </p>
+
+              <label v-if="hasPassword" class="field">
+                <span class="label">原密码</span>
+                <input
+                  v-model="pwd.oldPassword"
+                  class="input"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="当前登录密码"
+                />
+              </label>
+
+              <label class="field">
+                <span class="label">新密码</span>
+                <input
+                  v-model="pwd.newPassword"
+                  class="input"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="6-64 位"
+                />
+              </label>
+
+              <label class="field">
+                <span class="label">确认新密码</span>
+                <input
+                  v-model="pwd.confirm"
+                  class="input"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="再输入一次"
+                />
+              </label>
+
+              <p v-if="pwdError" class="msg error">{{ pwdError }}</p>
+              <p v-if="pwdSuccess" class="msg success">{{ pwdSuccess }}</p>
+
+              <button
+                class="primary-btn pwd-btn"
+                type="button"
+                :disabled="changingPassword"
+                @click="handleChangePassword"
+              >
+                {{ changingPassword ? '提交中…' : hasPassword ? '修改密码' : '设置密码' }}
+              </button>
             </div>
           </template>
 
@@ -596,6 +696,27 @@ async function handleSave(): Promise<void> {
 .ghost-btn:hover {
   border-color: var(--primary-light);
   color: var(--primary);
+}
+/* 修改密码：与资料保存分区，避免两个提交按钮混淆 */
+.pwd-block {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border-light);
+}
+.pwd-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+.pwd-tip {
+  margin: 0 0 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.pwd-btn {
+  width: 100%;
 }
 .avatar-row {
   display: flex;

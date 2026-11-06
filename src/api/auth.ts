@@ -12,6 +12,8 @@ export interface AuthResult {
   gender: number
   /** 登录账号：绑定后才有，未绑定时为 null */
   account: string | null
+  /** 是否已设置登录密码（微信用户从未设置时为 false，个人页据此显示「设置密码」） */
+  hasPassword?: boolean
   /** 个人头像 URL */
   avatar: string | null
   rating: number
@@ -47,6 +49,12 @@ export interface RegisterPayload {
   captchaCode: string
 }
 
+/** 修改密码：已设置过密码时 oldPassword 必填；微信用户首次设置可只传新密码 */
+export interface ChangePasswordPayload {
+  oldPassword?: string
+  newPassword: string
+}
+
 /** 编辑个人信息：字段留空表示不修改 */
 export interface ProfilePayload {
   name?: string
@@ -78,6 +86,11 @@ export function fetchMe(): Promise<AuthResult> {
 /** 编辑个人信息（PUT /auth/profile） */
 export function updateProfile(payload: ProfilePayload): Promise<AuthResult> {
   return request<AuthResult>('/auth/profile', { method: 'PUT', body: payload })
+}
+
+/** 修改 / 设置登录密码：成功返回带新 token 的用户信息（其他设备会被踢下线） */
+export function changePassword(payload: ChangePasswordPayload): Promise<AuthResult> {
+  return request<AuthResult>('/auth/password', { method: 'PUT', body: payload })
 }
 
 export function logout(): Promise<void> {

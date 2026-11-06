@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import * as authApi from '../api/auth'
-import type { AuthResult, LoginPayload, RegisterPayload } from '../api/auth'
+import type { AuthResult, ChangePasswordPayload, LoginPayload, RegisterPayload } from '../api/auth'
 import { clearToken, getToken, setToken } from '../api/http'
 
 /**
@@ -35,6 +35,7 @@ function persist(next: AuthResult | null): void {
       nickname: next.nickname ?? null,
       gender: next.gender,
       account: next.account ?? null,
+      hasPassword: next.hasPassword ?? false,
       avatar: next.avatar ?? null,
       rating: next.rating,
       gamesPlayed: next.gamesPlayed,
@@ -76,6 +77,16 @@ async function register(payload: RegisterPayload): Promise<AuthResult> {
   submitting.value = true
   try {
     return accept(await authApi.register(payload))
+  } finally {
+    submitting.value = false
+  }
+}
+
+/** 修改密码：后端会换发新 token，这里同步替换本地凭证（其他设备旧会话已被踢掉） */
+async function changePassword(payload: ChangePasswordPayload): Promise<AuthResult> {
+  submitting.value = true
+  try {
+    return accept(await authApi.changePassword(payload))
   } finally {
     submitting.value = false
   }
@@ -143,6 +154,7 @@ export function useAuth() {
     login,
     register,
     applyProfile,
+    changePassword,
     logout,
     restore,
   }
