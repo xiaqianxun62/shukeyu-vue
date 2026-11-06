@@ -11,6 +11,10 @@ const { isLoggedIn, has } = useAuth()
 const loading = ref(true)
 const list = ref<usersApi.UserItem[]>([])
 const rolesList = ref<usersApi.RoleItem[]>([])
+/** 角色 → 权限码矩阵，用于在分配弹窗里说明每个角色包含哪些权限 */
+const rolePermissions = ref<usersApi.RolePermissionItem[]>([])
+/** 搜索关键词：姓名 / 账号 / 用户 ID */
+const keyword = ref('')
 /** 每个用户的当前角色码：userId -> 角色码组（降序） */
 const roleMap = ref<Record<number, string[]>>({})
 const resettingId = ref<number | null>(null)
@@ -18,13 +22,28 @@ const error = ref('')
 
 const canAccess = computed(() => isLoggedIn.value && has('user:manage'))
 
+/** 按姓名 / 昵称 / 账号 / ID 过滤，避免人多时在一长串里翻 */
+const filteredList = computed(() => {
+  const kw = keyword.value.trim().toLowerCase()
+  if (!kw) return list.value
+  return list.value.filter((u) =>
+    [u.name, u.nickname, u.account, String(u.id)]
+      .some((v) => (v ?? '').toLowerCase().includes(kw)),
+  )
+})
+
 async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    const [users, roles] = await Promise.all([usersApi.listUsers(), usersApi.listRoles()])
+    const [users, roles, matrix] = await Promise.all([
+      usersApi.listUsers(),
+      usersApi.listRoles(),
+      usersApi.listRolePermissions(),
+    ])
     list.value = users
     rolesList.value = roles
+    rolePermissions.value = matrix
     // 每人查一次当前角色（量级 = 社团人数，可接受；后端有 Redis 缓存）
     const entries = await Promise.all(
       users.map(async (u) => [u.id, await usersApi.getUserRoles(u.id)] as const),
@@ -75,6 +94,13 @@ async function saveRoles(): Promise<void> {
   }
 }
 
+/** 某个角色包含的权限中文名，用于分配弹窗里「勾它等于给了什么」 */
+function rolePermsText(code: string): string {
+  const found = rolePermissions.value.find((r) => r.code === code)
+  if (!found || !found.permissions.length) return '无管理权限'
+  return found.permissions.map((p) => p.name).join('、')
+}
+
 /** 角色列显示文本：按权限从低到高映射已授角色 */
 function roleText(u: usersApi.UserItem): string {
   const codes = roleMap.value[u.id] ?? []
@@ -114,7 +140,15 @@ onMounted(load)
     <header class="top">
       <button class="back" @click="emit('back')">← 返回官网</button>
       <h1>用户管理</h1>
-      <span v-if="canAccess" class="hint">共 {{ list.length }} 位用户</span>
+      <input
+        v-if="canAccess"
+        v-model="keyword"
+        class="search"
+        placeholder="搜索姓名 / 账号 / ID"
+      />
+      <span v-if="canAccess" class="hint">
+        {{ keyword.trim() ? `${filteredList.length} / ${list.length}` : `共 ${list.length}` }} 位用户
+      </span>
     </header>
 
     <section v-if="!canAccess" class="denied">
@@ -139,7 +173,7 @@ onMounted(load)
           </tr>
         </thead>
         <tbody>
-          <tr v-for="u in list" :key="u.id">
+          <tr v-for="u in filteredList" :key="u.id">
             <td class="user-cell" data-label="用户">
               <div class="avatar" :style="{ background: colorFor(u.id) }">
                 <SmartImage v-if="u.avatar" :src="u.avatar" class="avatar-img" />
@@ -196,6 +230,7 @@ onMounted(load)
             />
             <span class="role-name">{{ r.name }}</span>
             <span class="role-code">{{ r.code }}</span>
+            <span class="role-perms">{{ rolePermsText(r.code) }}</span>
           </label>
         </div>
         <div class="modal-actions">
@@ -227,7 +262,12 @@ onMounted(load)
 .back {
   background: none; border: none; color: #14665b; font-size: 14px; cursor: pointer;
 }
-.hint { margin-left: auto; color: #5a726d; font-size: 13px; }
+.hint { color: #5a726d; font-size: 13px; white-space: nowrap; }
+.search {
+  margin-left: auto; padding: 7px 12px; border: 1px solid #e4e0d5; border-radius: 8px;
+  font-size: 13px; color: #1a2e2a; min-width: 200px;
+}
+.search:focus { outline: none; border-color: #14665b; }
 .denied {
   text-align: center; padding: 60px 20px; color: #1a2e2a;
 }
@@ -279,12 +319,13 @@ onMounted(load)
 .modal-hint { margin: 0 0 14px; font-size: 12px; color: #5a726d; line-height: 1.6; }
 .role-picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
 .role-option {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; padding: 10px 12px;
   border: 1px solid #e4e0d5; border-radius: 10px; cursor: pointer; font-size: 13px;
 }
 .role-option.picked { border-color: #14665b; background: #eef4f2; }
 .role-name { font-weight: 600; color: #1a2e2a; }
 .role-code { margin-left: auto; color: #8a9a96; font-size: 12px; }
+.role-perms { flex-basis: 100%; padding-left: 26px; color: #5a726d; font-size: 11px; line-height: 1.5; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
 /* ===== 手机适配（≤640px） ===== */
@@ -292,7 +333,8 @@ onMounted(load)
   .admin-page { padding: 16px 14px 40px; }
   .top { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
   .top h1 { font-size: 18px; }
-  .hint { margin-left: 0; width: 100%; font-size: 12px; }
+  .search { margin-left: 0; width: 100%; }
+  .hint { width: 100%; font-size: 12px; }
 
   /* 表格转卡片 */
   .users-table thead { display: none; }

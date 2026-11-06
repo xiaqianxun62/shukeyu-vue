@@ -8,7 +8,7 @@ const emit = defineEmits<{ back: [] }>()
 const { isLoggedIn, has } = useAuth()
 
 const loading = ref(true)
-const list = ref<courtApi.Court[]>([])
+const list = ref<courtApi.CourtAdminItem[]>([])
 const error = ref('')
 const modalOpen = ref(false)
 const editingId = ref<number | null>(null)
@@ -32,7 +32,7 @@ function openAdd(): void {
   modalOpen.value = true
 }
 
-function openEdit(c: courtApi.Court): void {
+function openEdit(c: courtApi.CourtAdminItem): void {
   editingId.value = c.id
   form.value = {
     name: c.name,
@@ -68,13 +68,29 @@ async function handleSave(): Promise<void> {
   finally { saving.value = false }
 }
 
-async function handleToggle(c: courtApi.Court): Promise<void> {
+async function handleToggle(c: courtApi.CourtAdminItem): Promise<void> {
   try { await courtApi.toggleCourt(c.id); await load() }
   catch (e) { alert(e instanceof Error ? e.message : '操作失败') }
 }
 
-async function handleDelete(c: courtApi.Court): Promise<void> {
-  if (!confirm(`确定要删除球场「${c.name}」吗？（已发布的球局不受影响）`)) return
+/** 被球局 / 赛事引用的球场不能删：删了历史记录会丢场地名与定位，只能停用 */
+function refCount(c: courtApi.CourtAdminItem): number {
+  return (c.gameCount || 0) + (c.tournamentCount || 0)
+}
+
+function refText(c: courtApi.CourtAdminItem): string {
+  const parts: string[] = []
+  if (c.gameCount) parts.push(`${c.gameCount} 个球局`)
+  if (c.tournamentCount) parts.push(`${c.tournamentCount} 个赛事`)
+  return parts.length ? parts.join(' / ') : '未被引用'
+}
+
+async function handleDelete(c: courtApi.CourtAdminItem): Promise<void> {
+  if (refCount(c) > 0) {
+    alert(`「${c.name}」已被 ${refText(c)}使用，删除会让这些记录的场地名与定位失效。\n请改为「停用」。`)
+    return
+  }
+  if (!confirm(`确定要删除球场「${c.name}」吗？`)) return
   try { await courtApi.deleteCourt(c.id); await load() }
   catch (e) { alert(e instanceof Error ? e.message : '删除失败') }
 }
@@ -107,6 +123,7 @@ onMounted(load)
             <th>球场名称</th>
             <th>地址</th>
             <th>经纬度</th>
+            <th>引用</th>
             <th>状态</th>
             <th></th>
           </tr>
@@ -120,6 +137,7 @@ onMounted(load)
               <span v-if="c.lat != null && c.lng != null">{{ c.lat.toFixed(5) }}, {{ c.lng.toFixed(5) }}</span>
               <span v-else>—</span>
             </td>
+            <td class="sub" data-label="引用">{{ refText(c) }}</td>
             <td data-label="状态">
               <span :class="['tag', c.enabled ? 'ok' : 'off']">{{ c.enabled ? '启用' : '停用' }}</span>
             </td>
@@ -128,11 +146,16 @@ onMounted(load)
               <button class="btn" :class="c.enabled ? 'warn' : 'primary'" @click="handleToggle(c)">
                 {{ c.enabled ? '停用' : '启用' }}
               </button>
-              <button class="btn danger" @click="handleDelete(c)">删除</button>
+              <button
+                class="btn danger"
+                :disabled="refCount(c) > 0"
+                :title="refCount(c) > 0 ? '已被业务数据引用，请改为停用' : '删除场地'"
+                @click="handleDelete(c)"
+              >删除</button>
             </td>
           </tr>
           <tr v-if="list.length === 0">
-            <td colspan="6" class="empty">还没有球场场地，点右上角 + 新增</td>
+            <td colspan="7" class="empty">还没有球场场地，点右上角 + 新增</td>
           </tr>
         </tbody>
       </table>
@@ -199,7 +222,8 @@ onMounted(load)
 .btn.primary { background: #14665b; color: #fff; }
 .btn.danger { background: #b33a2e; color: #fff; }
 .btn.warn { background: #7a4f1b; color: #fff; }
-.btn:disabled { opacity: .6; cursor: not-allowed; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.danger:disabled { background: #d9d6cf; color: #8a9a96; }
 
 .denied { text-align: center; padding: 60px 20px; color: #1a2e2a; }
 .denied h2 { margin: 0 0 12px; }

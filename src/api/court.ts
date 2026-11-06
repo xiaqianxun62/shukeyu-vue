@@ -26,9 +26,15 @@ export function listCourts(): Promise<Court[]> {
   return request<Court[]>('/courts')
 }
 
-/** 管理员：列出全部（含停用） */
-export function listAllCourts(): Promise<Court[]> {
-  return request<Court[]>('/courts/admin')
+/** 管理端列表项：场地 + 被球局 / 赛事引用的次数 */
+export interface CourtAdminItem extends Court {
+  gameCount: number
+  tournamentCount: number
+}
+
+/** 管理员：列出全部（含停用），附引用计数 */
+export function listAllCourts(): Promise<CourtAdminItem[]> {
+  return request<CourtAdminItem[]>('/courts/admin')
 }
 
 export function createCourt(payload: CourtForm): Promise<Court> {

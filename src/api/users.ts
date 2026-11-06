@@ -21,6 +21,24 @@ export interface RoleItem {
   name: string
 }
 
+/** 权限码：code 用于接口判定，name 用于展示 */
+export interface PermissionItem {
+  code: string
+  name: string
+}
+
+/** 角色 → 权限码：分配角色前先看清「勾上这个角色到底给了什么」 */
+export interface RolePermissionItem {
+  code: string
+  name: string
+  permissions: PermissionItem[]
+}
+
+/** 角色权限矩阵（四级角色，按权限从低到高） */
+export function listRolePermissions(): Promise<RolePermissionItem[]> {
+  return request<RolePermissionItem[]>('/users/roles/permissions')
+}
+
 /** 列出所有用户（持 user:manage 权限） */
 export function listUsers(): Promise<UserItem[]> {
   return request<UserItem[]>('/users')
