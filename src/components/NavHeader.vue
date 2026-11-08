@@ -23,6 +23,8 @@ const emit = defineEmits<{
   visitLogsClick: []
   /** 用户菜单「大型比赛管理」（持赛事管理权限） */
   tournamentsClick: []
+  /** 用户菜单「智能问答」 */
+  aiClick: []
 }>()
 
 const { isLoggedIn, has, user, logout } = useAuth()
@@ -158,6 +160,11 @@ function openSettings(): void {
   emit('settingsClick')
 }
 
+function openAi(): void {
+  closeAll()
+  emit('aiClick')
+}
+
 /** 点击浮层外部 / 按 ESC 关闭。浮层已 Teleport 到 body，需逐一放行内部点击 */
 function onDocumentClick(e: MouseEvent): void {
   const t = e.target as Node
@@ -289,6 +296,10 @@ onBeforeUnmount(() => {
             <SvgIcon type="person" :size="15" />
             编辑个人信息
           </button>
+          <button type="button" class="dropdown-item" @click="openAi">
+            <SvgIcon type="bot" :size="15" />
+            智能问答
+          </button>
           <button v-if="canSettings" type="button" class="dropdown-item" @click="openSettings">
             <SvgIcon type="engine" :size="15" />
             站点文案
@@ -402,6 +413,10 @@ onBeforeUnmount(() => {
           <button type="button" class="drawer-profile" @click="openProfile">
             <SvgIcon type="person" :size="16" />
             编辑个人信息
+          </button>
+          <button type="button" class="drawer-profile" @click="openAi">
+            <SvgIcon type="bot" :size="16" />
+            智能问答
           </button>
           <button v-if="canSettings" type="button" class="drawer-profile" @click="openSettings">
             <SvgIcon type="engine" :size="16" />

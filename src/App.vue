@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import NavHeader from './components/NavHeader.vue'
+import SvgIcon from './components/SvgIcon.vue'
 import HeroSection from './components/HeroSection.vue'
 import DashboardSection from './components/DashboardSection.vue'
 import AdminSection from './components/AdminSection.vue'
@@ -18,6 +19,7 @@ import CourtManagementPage from './views/CourtManagementPage.vue'
 import QuestionManagementPage from './views/QuestionManagementPage.vue'
 import VisitLogPage from './views/VisitLogPage.vue'
 import TournamentManagementPage from './views/TournamentManagementPage.vue'
+import AiChatPage from './views/AiChatPage.vue'
 import GameDetailPage from './views/GameDetailPage.vue'
 import { useAuth } from './composables/useAuth'
 import { isMobileDevice, mobileSiteUrl } from './utils/device'
@@ -26,7 +28,7 @@ import { isMobileDevice, mobileSiteUrl } from './utils/device'
  * 极简 hash 路由：官网用 #hero 等锚点做滚动，登录页用 #/login、#/register 区分。
  * 不引入 vue-router，保持零依赖。
  */
-type Route = 'home' | 'login' | 'register' | 'profile' | 'settings' | 'footer' | 'notice' | 'admin' | 'courts' | 'questions' | 'visitlogs' | 'tournaments' | 'game'
+type Route = 'home' | 'login' | 'register' | 'profile' | 'settings' | 'footer' | 'notice' | 'admin' | 'courts' | 'questions' | 'visitlogs' | 'tournaments' | 'ai' | 'game'
 
 const showCtaToast = ref(false)
 const gameId = ref<number | null>(null)
@@ -56,7 +58,7 @@ onMounted(() => {
   showMobileBanner.value = isMobileDevice() && !dismissed
 })
 
-const { restore } = useAuth()
+const { restore, isLoggedIn } = useAuth()
 
 const authTab = computed<'login' | 'register'>(() =>
   route.value === 'register' ? 'register' : 'login',
@@ -71,7 +73,7 @@ function currentRoute(): Route {
     return 'game'
   }
   gameId.value = null
-  if (hash === 'login' || hash === 'register' || hash === 'profile' || hash === 'settings' || hash === 'footer' || hash === 'notice' || hash === 'admin' || hash === 'courts' || hash === 'questions' || hash === 'visitlogs' || hash === 'tournaments') return hash as Route
+  if (hash === 'login' || hash === 'register' || hash === 'profile' || hash === 'settings' || hash === 'footer' || hash === 'notice' || hash === 'admin' || hash === 'courts' || hash === 'questions' || hash === 'visitlogs' || hash === 'tournaments' || hash === 'ai') return hash as Route
   return 'home'
 }
 
@@ -129,6 +131,11 @@ function handleTournamentsClick(): void {
   window.location.hash = '#/tournaments'
 }
 
+/** 用户菜单「智能问答」 */
+function handleAiClick(): void {
+  window.location.hash = '#/ai'
+}
+
 /** 从登录页返回官网（回到首页锚点，hash 变化会自动切回官网视图） */
 function handleBack(): void {
   if (window.location.hash.startsWith('#/')) {
@@ -175,6 +182,7 @@ onBeforeUnmount(() => {
     <QuestionManagementPage v-else-if="route === 'questions'" @back="handleBack" />
     <VisitLogPage v-else-if="route === 'visitlogs'" @back="handleBack" />
     <TournamentManagementPage v-else-if="route === 'tournaments'" @back="handleBack" />
+    <AiChatPage v-else-if="route === 'ai'" @back="handleBack" />
     <AuthPage
       v-else-if="route !== 'home'"
       :tab="authTab"
@@ -195,7 +203,7 @@ onBeforeUnmount(() => {
           ×
         </button>
       </div>
-      <NavHeader @cta-click="handleCtaClick" @profile-click="handleProfileClick" @settings-click="handleSettingsClick" @footer-click="handleFooterClick" @notice-click="handleNoticeClick" @admin-click="handleAdminClick" @courts-click="handleCourtsClick" @questions-click="handleQuestionsClick" @visit-logs-click="handleVisitLogsClick" @tournaments-click="handleTournamentsClick" />
+      <NavHeader @cta-click="handleCtaClick" @profile-click="handleProfileClick" @settings-click="handleSettingsClick" @footer-click="handleFooterClick" @notice-click="handleNoticeClick" @admin-click="handleAdminClick" @courts-click="handleCourtsClick" @questions-click="handleQuestionsClick" @visit-logs-click="handleVisitLogsClick" @tournaments-click="handleTournamentsClick" @ai-click="handleAiClick" />
       <main>
         <HeroSection @cta="handleCtaClick" />
         <!-- 首页定位为数据与管理：首屏保留，下方为数据看板 + 管理入口 + 积分榜 -->
@@ -204,6 +212,17 @@ onBeforeUnmount(() => {
         <RankingSection />
       </main>
       <FooterSection />
+      <!-- 智能问答悬浮入口：登录后常驻，避免功能只能从用户菜单里找 -->
+      <button
+        v-if="isLoggedIn"
+        type="button"
+        class="ai-fab"
+        title="智能问答：积分规则、球局、轮排都能问"
+        @click="handleAiClick"
+      >
+        <SvgIcon type="bot" :size="18" />
+        <span>智能问答</span>
+      </button>
       <!-- 首页弹窗公告：仅首页挂载，关闭后当天不再弹 -->
       <HomeNoticeModal />
     </template>
@@ -212,6 +231,41 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* 智能问答悬浮按钮：登录后显示在右下角 */
+.ai-fab {
+  position: fixed;
+  right: 22px;
+  bottom: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(20, 102, 91, 0.28);
+  cursor: pointer;
+  z-index: 90;
+  transition: transform 0.2s, background 0.2s;
+}
+.ai-fab:hover {
+  transform: translateY(-2px);
+  background: var(--primary-light);
+}
+
+@media (max-width: 640px) {
+  .ai-fab {
+    right: 14px;
+    bottom: 16px;
+    padding: 9px 13px;
+    font-size: 13px;
+  }
+}
+
 /* 手机访问 PC 官网时的顶部提示横幅：只提示、不强制跳转 */
 .mobile-banner {
   display: flex;

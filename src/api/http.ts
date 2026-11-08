@@ -22,7 +22,7 @@ export class ApiError extends Error {
 }
 
 /** 后端地址：所有接口统一挂在 /api 下。开发期由 vite proxy 转发到 8080，生产由 nginx 反代。 */
-const BASE_URL: string = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api'
+export const BASE_URL: string = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '/api'
 
 const TOKEN_KEY = 'yuyue_token'
 
